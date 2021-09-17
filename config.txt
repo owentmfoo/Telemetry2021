@@ -1,0 +1,8 @@
+{
+    "gps_update":2000,
+    "sd_update":10000,
+    "time_fix":60000,
+    "speedtype":"kmh",
+    "mode":1,
+    "somevalues":[1.1,1.23456]
+}
