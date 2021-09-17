@@ -4,5 +4,6 @@
     "time_fix":60000,
     "speedtype":"kmh",
     "mode":1,
+    "MPPT_update":1000,
     "somevalues":[1.1,1.23456]
 }
