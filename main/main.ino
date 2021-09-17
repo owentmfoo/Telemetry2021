@@ -9,11 +9,12 @@
 #define MCP_SS 10
 #define SD_SS 53
 #define SLEEP_INT 20
+#define FLAG_INT 21
 #define GPSSerial Serial1
 #define XBeeSL Serial2
 
 #define GPSECHO  false
-#define DEBUG
+#define DEBUG false
 
 #ifdef DEBUG
  #define DEBUG_PRINT(x)  Serial.print (x)
@@ -66,6 +67,7 @@ struct conf {
     long time_fix;
     const char* speedtype;
     int mode;
+    unsigned int mppt_update;
     double value0; 
     double value1;
 };
@@ -83,6 +85,8 @@ uint8_t countID[10];  // Counter for the above.
 
 uint32_t timer = millis();
 uint32_t sd_timer = millis();
+uint32_t mppt_timer = millis();
+uint32_t flag_timer = millis();
 
 void setup() {
     /* Start the serial ports */
@@ -100,7 +104,7 @@ void setup() {
     
     /* Start the CAN transceivers */
     mcp2515.reset();
-    mcp2515.setBitrate(CAN_125KBPS);
+    mcp2515.setBitrate(CAN_125KBPS,MCP_8MHZ);
     mcp2515.setNormalMode();
 
     DEBUG_PRINTLN("Setting up");
@@ -156,7 +160,9 @@ void setup() {
 
     log_start_up(log_filename); // Create new file with. log_filename will be modified accordingly. File is dataFile
     //attachInterrupt(digitalPinToInterrupt(SLEEP_INT), shut_down, FALLING); // Do this now so we don't try and close a file which doesn't exist
+    attachInterrupt(digitalPinToInterrupt(FLAG_INT), flag_status, FALLING);
     pinMode(SLEEP_INT, INPUT_PULLUP);
+    pinMode(FLAG_INT, INPUT_PULLUP);
   
     /*DEBUG_PRINTLN("------- CAN Read ----------");
     DEBUG_PRINTLN("ID  DLC   DATA");
@@ -170,13 +176,16 @@ void loop() {
         // We return here if SLEEP_INT goes high; we'll exit the loop
         DEBUG_PRINTLN("We're back");
     }
-
+    if (!digitalRead(FLAG_INT)) {
+        flag_status();
+        // We return here if SLEEP_INT goes high; we'll exit the loop
+    }
     /* Read incoming CAN message and treat accordingly */
     readCAN();
 
     /* Update GPS */
     doGPS();
-
+    pollMPPT();
     /* Poll additional sensors */
     pollSensor();
 
@@ -376,6 +385,26 @@ void gps2canMsgs() {
 
 }
 
+
+void pollMPPT() {//not working
+    /** Additional data stream template **/
+    if (millis() - mppt_timer > config.mppt_update) {
+        //DEBUG_PRINTLN("MPPT1 is being read and transmitted."); 
+        mppt_timer = millis(); // reset the timer
+        int ds1val_a;
+        ds1val_a = '0x00000000';
+        canMsgSys.can_id = 0x711;
+        canMsgSys.can_dlc = sizeof(ds1val_a);
+        canMsgSys.data[0] = (ds1val_a >> 32) & 0xFF;
+        canMsgSys.data[1] = (ds1val_a >> 16) & 0xFF; 
+        canMsgSys.data[2] = (ds1val_a >> 8) & 0xFF; 
+        canMsgSys.data[3] = (ds1val_a >> 0) & 0xFF; 
+        mcp2515.sendMessage(&canMsgSys);
+        canMsgSys.can_id = 0x712; // poll the second MPPT
+        mcp2515.sendMessage(&canMsgSys);
+    }
+}
+
 void pollSensor() {
     /** Additional data stream template **//*
     if (millis() - timer > config.ds1_ud) {
@@ -444,7 +473,7 @@ void load_config(const char *filename, conf &config) {
     //char configFile[] = "{\"speedtype\":\"kmh\",\"mode\":1,\"somevalues\":[1.1,1.23456]}";
 
     // Size of the stuff
-    DynamicJsonDocument doc(140); // Tool to calculate this value: https://arduinojson.org/v6/assistant/
+    DynamicJsonDocument doc(192); // Tool to calculate this value: https://arduinojson.org/v6/assistant/
 
     // Parse the file
     DeserializationError error = deserializeJson(doc, configFile);
@@ -463,9 +492,10 @@ void load_config(const char *filename, conf &config) {
     config.time_fix = doc["time_fix"];      DEBUG_PRINT("TIME FIX:\t");     DEBUG_PRINTLN(config.time_fix);
     config.sd_update = doc["sd_update"];    DEBUG_PRINT("SD UPDATE:\t");    DEBUG_PRINTLN(config.sd_update);
     config.speedtype = doc["speedtype"];    DEBUG_PRINT("SPEEDTYPE:\t");    DEBUG_PRINTLN(config.speedtype);
-    config.mode = doc["mode"];              DEBUG_PRINT("MODE:\t");   DEBUG_PRINTLN(config.mode);
-    config.value0 = doc["somevalues"][0];   DEBUG_PRINT("VAL0:\t");   DEBUG_PRINTLN(config.value0);
-    config.value1 = doc["somevalues"][1];   DEBUG_PRINT("VAL1:\t");   DEBUG_PRINTLN(config.value1);
+    config.mode = doc["mode"];              DEBUG_PRINT("MODE:\t");         DEBUG_PRINTLN(config.mode);
+    config.gps_update = doc["mppt_update"]; DEBUG_PRINT("mppt UPDATE:\t");  DEBUG_PRINTLN(config.mppt_update);
+    config.value0 = doc["somevalues"][0];   DEBUG_PRINT("VAL0:\t");         DEBUG_PRINTLN(config.value0);
+    config.value1 = doc["somevalues"][1];   DEBUG_PRINT("VAL1:\t");         DEBUG_PRINTLN(config.value1);
 
     DEBUG_PRINTLN("Configuration set from SD, closing file");
     // Close the file; we can only have one open at a time
@@ -491,6 +521,7 @@ void set_defaults(conf &config) {
     config.time_fix = 10000;
     config.speedtype = "kmh";
     config.mode = 1;
+    config.mppt_update = 1000;
     config.value0 = -1;
     config.value1 = -1;
     DEBUG_PRINTLN("Using defaults");
@@ -528,6 +559,13 @@ void shut_down() { // If called by an interrupt, not sure how much of this we wo
         }
         delay(5000); // Don't use delay() if we are using a interrupt, it doesn't work.
     }
+}
+
+void flag_status(){
+  if (millis() - flag_timer > 500) {
+    flag_timer = millis();
+    sendStatus(4, 0xFF);
+  } 
 }
 
 void sd_info(){
