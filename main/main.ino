@@ -1,9 +1,3 @@
-/* todo:
- *  send status only allow one flag at a time 
- *  include flag pin in send status, activate by interrupt?
- */
-
-
 #include <SoftwareSerial.h>
 #include <SPI.h>
 #include <SD.h>
@@ -410,36 +404,6 @@ void pollMPPT() {//not working
         mcp2515.sendMessage(&canMsgSys);
     }
 }
-
-/*
-int softFilter(uint32_t canID) {
-    int index = findIndex(canIDs, sizeof(canIDs), canID);
-    if (index == -1) {
-        return 1;   // If CAN ID is not present, pass through message
-        //return config.inv_id_case; ///maybe config so optional to do this
-    }
-    if (passRate[index] == 0) {
-        return 0;   // Set to zero for no pass rate
-    }
-    if (countID[index] < passRate[index]) {
-        countID[index]++;
-        return 0;
-    }
-    else {
-        countID[index] = 0;
-        return 1;
-    }
-}
-
-int findIndex(uint32_t IDs[], uint8_t N, uint32_t to_find) {
-    for (int i = 0; i < N; i++) {
-        if (IDs[i] == to_find) {
-            return i;   // Returns the value of the index if present.
-        }
-    }
-    return -1;
-}
-*/
 
 void pollSensor() {
     /** Additional data stream template **//*
