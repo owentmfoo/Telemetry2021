@@ -7,9 +7,11 @@ MCP2515 mcp2515(10);
 uint8_t SPICS=10;
 int i = 1;
 
+
+
 uint32_t mppt_timer = millis();
 void setup() {
-  
+  canMsgSys.can_id = 0x711;
   canMsgSys.can_dlc = 8;
   canMsgSys.data[0] = 0x00;
   canMsgSys.data[1] = 0x00; 
@@ -68,8 +70,8 @@ void pollMPPT() {
         //DEBUG_PRINTLN("MPPT1 is being read and transmitted."); 
         mppt_timer = millis(); // reset the timer
         
-        canMsgSys.can_id = 0x710; // poll the second MPPT
-        mcp2515.sendMessage(&canMsgSys);
+        //canMsgSys.can_id = 0x710; // poll the second MPPT
+        //mcp2515.sendMessage(&canMsgSys);
         
         canMsgSys.can_id = 0x711; // poll the second MPPT
         mcp2515.sendMessage(&canMsgSys);

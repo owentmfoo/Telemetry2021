@@ -130,3 +130,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Excel temp doc
+/~$CAN Bus Data.xlsx
