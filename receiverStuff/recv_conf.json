@@ -315,20 +315,10 @@
     ],
     "0xFA": [
         {
-            "name": "Angle and sats",
+            "name": "Alti and sats",
             "source": "TelemetryGPS",
             "structure": ["float32", "uint8"],
-            "fields": ["angle", "sats"],
-            "labels": ["Angle", "Number of satellites"]
-        }
-    ],
-    "0xFA": [
-        {
-            "name": "Angle and sats",
-            "source": "TelemetryGPS",
-            "structure": ["float32", "uint8"],
-            "fields": ["angle", "sats"],
-            "labels": ["Angle", "Number of satellites"]
+            "fields": ["altitude", "sats"],
+            "labels": ["Altitude", "Number of satellites"]
         }
     ]
-}
