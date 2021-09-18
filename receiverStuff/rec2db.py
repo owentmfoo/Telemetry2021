@@ -9,7 +9,7 @@ import numpy as np
 from can import Message
 from influxdb import InfluxDBClient
 
-json_path = './recv_conf.json'
+json_path = 'receiverStuff/recv_conf.json'
 serial_port = '/dev/ttyUSB0'  # '/dev/ttyUSB0', '/dev/ttyAMA0'
 
 """
@@ -19,7 +19,7 @@ Database parameters
 ifuser = "admin"
 ifpass = "password"
 ifdb = "home"
-ifhost = "127.0.0.0"
+ifhost = "192.168.0.174"
 ifport = 8086
 # measurement_name = "system"
 

@@ -131,3 +131,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 /~$CAN Bus Data.xlsx
+/CAN_record/
