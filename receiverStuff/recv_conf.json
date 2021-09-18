@@ -209,8 +209,8 @@
             "name": "Odo. & Bus AmpHours",
             "source": "Tritium",
             "structure": ["float32", "float32"],
-            "fields": ["backEMFReal","backEMFImag"],
-            "labels": ["Real Back EMF","Imaginary Back EMF"],
+            "fields": ["odometer","busAmpHr"],
+            "labels": ["Odometer","Bus Amp Hours"],
             "ylims": [[0, 100], [0, 100]],
             "maxnumel": [20, 20]
         }
