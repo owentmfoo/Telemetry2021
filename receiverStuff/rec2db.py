@@ -111,6 +111,7 @@ def parse_msg(message):
                 # Send to the right function for the right data
                 types = {
                     "float32": up_float,
+                    "float32_le":up_float_le,
                     "int32": up_int32,
                     "uint32": up_uint32,
                     "int16": up_int16,
@@ -163,6 +164,7 @@ def parse_msg(message):
                 print("Data type\t: %s" % dataType)
                 print("Data value\t: %s" % value)
                 print("Set offset to\t: %s\n" % offset)
+
                 ifclient.write_points(body)
 
                 # print(body)
@@ -217,6 +219,11 @@ def up_float(data, offset):
     offset += 4
     return x, offset
 
+def up_float_le(data, offset):
+    [x] = struct.unpack('<f', data[offset:offset + 4])
+    # Could use: struct.unpack_from(format, /, buffer, offset=offset)
+    offset += 4
+    return x, offset
 
 def up_int32(data, offset):
     [x] = struct.unpack('>i', data[offset:offset + 4])

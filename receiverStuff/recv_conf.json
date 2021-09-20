@@ -16,8 +16,8 @@
             "source": "Driver Controls",
             "passratio": 2,
             "structure": [
-                "float322",
-                "float32"
+                "float32_le",
+                "float32_le"
             ],
             "fields": [
                 "drv_vel",
@@ -49,16 +49,16 @@
             "source": "Driver Controls",
             "passratio": 2,
             "structure": [
-                "float32",
-                "float32"
+                "float32_le",
+                "float32_le"
             ],
             "fields": [
-                "0",
+                "Reserved",
                 "max_curr"
             ],
             "labels": [
-                "0",
-                "Max Bus Current?"
+                "Reserved",
+                "Max Bus Current (%)"
             ],
             "ylims": [
                 [
@@ -153,8 +153,8 @@
             "name": "Bus Measurement",
             "source": "Tritium",
             "structure": [
-                "float32",
-                "float32"
+                "float32_le",
+                "float32_le"
             ],
             "fields": [
                 "busVoltage",
@@ -189,8 +189,8 @@
             "name": "Velocity",
             "source": "Tritium",
             "structure": [
-                "float32",
-                "float32"
+                "float32_le",
+                "float32_le"
             ],
             "fields": [
                 "motVel",
@@ -225,8 +225,8 @@
             "name": "Phase Current",
             "source": "Tritium",
             "structure": [
-                "float32",
-                "float32"
+                "float32_le",
+                "float32_le"
             ],
             "fields": [
                 "phBCurrent",
@@ -261,8 +261,8 @@
             "name": "Motor Voltage Vector",
             "source": "Tritium",
             "structure": [
-                "float32",
-                "float32"
+                "float32_le",
+                "float32_le"
             ],
             "fields": [
                 "vectVolImag",
@@ -297,8 +297,8 @@
             "name": "Motor Current Vector",
             "source": "Tritium",
             "structure": [
-                "float32",
-                "float32"
+                "float32_le",
+                "float32_le"
             ],
             "fields": [
                 "vectCurrentImag",
@@ -333,8 +333,8 @@
             "name": "Motor Back EMF Vector",
             "source": "Tritium",
             "structure": [
-                "float32",
-                "float32"
+                "float32_le",
+                "float32_le"
             ],
             "fields": [
                 "backEMFImag",
@@ -366,8 +366,8 @@
             "source": "Tritium",
             "passratio": 0,
             "structure": [
-                "float32",
-                "float32"
+                "float32_le",
+                "float32_le"
             ],
             "fields": [
                 "fifteenVrail",
@@ -399,8 +399,8 @@
             "source": "Tritium",
             "passratio": 0,
             "structure": [
-                "float32",
-                "float32"
+                "float32_le",
+                "float32_le"
             ],
             "fields": [
                 "twofiveVrail",
@@ -432,8 +432,8 @@
             "source": "Tritium",
             "passratio": 0,
             "structure": [
-                "float32",
-                "float32"
+                "float32_le",
+                "float32_le"
             ],
             "fields": [
                 "fanSpeed",
@@ -465,8 +465,8 @@
             "source": "Tritium",
             "passratio": 5,
             "structure": [
-                "float32",
-                "float32"
+                "float32_le",
+                "float32_le"
             ],
             "fields": [
                 "heatSinkTemp",
@@ -498,8 +498,8 @@
             "source": "Tritium",
             "passratio": 30,
             "structure": [
-                "float32",
-                "float32"
+                "float32_le",
+                "float32_le"
             ],
             "fields": [
                 "airInTemp",
@@ -531,8 +531,8 @@
             "source": "Tritium",
             "passratio": 30,
             "structure": [
-                "float32",
-                "float32"
+                "float32_le",
+                "float32_le"
             ],
             "fields": [
                 "airOutTemp",
@@ -563,8 +563,8 @@
             "name": "Odo. & Bus AmpHours",
             "source": "Tritium",
             "structure": [
-                "float32",
-                "float32"
+                "float32_le",
+                "float32_le"
             ],
             "fields": [
                 "odometer",

@@ -20,7 +20,7 @@ def to_byte(sample) -> bytearray:
 
 if __name__ == "__main__":
 
-    with open('CAN_record/out.csv', 'r') as dumpfile:
+    with open('../CAN_record/out2.csv', 'r') as dumpfile:
         line = dumpfile.readline()
         line = dumpfile.readline()
         line = dumpfile.readline()
