@@ -108,11 +108,11 @@ void setup() {
     canMsgStatus.can_id  = 0x111;
     canMsgStatus.can_dlc = 8;
     // Clear buffer
-    for (int i = 0; i<sizeof(canMsgSys.data); i++)  {
-        canMsgSys.data[i] = STATUS_UNKNOWN;
+    for (int i = 0; i<sizeof(canMsgStatus.data); i++)  {
+        canMsgStatus.data[i] = STATUS_UNKNOWN;
     }
 
-    sendStatus(0, 0xFF); // Position 0 is power. Send status that telem power is on (0xFF)
+    sendStatus(0, STATUS_OK); // Position 0 is power. Send status that telem power is on (0xFF)
 
     // make sure that the default chip select pin is set to
     // output, even if you don't use it:
@@ -215,10 +215,13 @@ void loop() {
     if ((millis() - status_timer) > config.status_update) {
         status_timer = millis();
         sendStatus(0,STATUS_OK);
+        DEBUG_PRINTLN("SEND STATUS");
     }
     /* send empty can to MPPT to request data */
     if (millis() - mppt_timer > config.mppt_update) {
+        mppt_timer = millis();
         pollMPPT();
+        DEBUG_PRINTLN("POLL MPPT");
     }
 }
 
@@ -240,13 +243,13 @@ void readCAN () {
 
 void sendStatus(int pos, uint8_t val) { // Could preserve a separate system status CAN message which gets sent periodically/upon change.
     // Update desired value
-    canMsgSys.data[pos] = val;
+    canMsgStatus.data[pos] = val;
     if (!(GPS.year == 0) && !(GPS.year == 80)) { // Before we think life is good, make sure we've actually go the date right - sometimes will read as 0 even when we have time or get it wrong and send 80
-    canMsgSys.data[2] = STATUS_OK;// GPS time acquired
+    canMsgStatus.data[2] = STATUS_OK;// GPS time acquired
     }else{
-    canMsgSys.data[2] = STATUS_NOTOK;
+    canMsgStatus.data[2] = STATUS_NOTOK;
     }
-    sendMessage(canMsgSys);
+    sendMessage(canMsgStatus);
 }
 
 void sendMessage(struct can_frame msg) {
@@ -406,23 +409,27 @@ void gps2canMsgs() {
 }
 
 
-void pollMPPT() {//not working
-        //send empty can message to MPPT 
-        canMsgSys.can_id = 0x711;
-        canMsgSys.can_dlc = 8;
-        canMsgSys.data[0] = 0x00;
-        canMsgSys.data[1] = 0x00; 
-        canMsgSys.data[2] = 0x00; 
-        canMsgSys.data[3] = 0x00; 
-        canMsgSys.data[4] = 0x00;
-        canMsgSys.data[5] = 0x00; 
-        canMsgSys.data[6] = 0x00; 
-        canMsgSys.data[7] = 0x00; 
-        mcp2515.sendMessage(&canMsgSys);
-        canMsgSys.can_id = 0x712; // poll the second MPPT
-        mcp2515.sendMessage(&canMsgSys);
-}
 
+void pollMPPT() {
+  /** Additional data stream template **/
+    canMsgSys.can_id = 0x711; // poll the second MPPT
+    canMsgSys.can_dlc = 8;
+    // Clear buffer
+    for (int i = 0; i<sizeof(canMsgSys.data); i++)  {
+        canMsgSys.data[i] = 0x00;
+    }
+    mcp2515.sendMessage(&canMsgSys);
+    canMsgSys.can_id = 0x771; // poll the second MPPT
+    mcp2515.sendMessage(&canMsgSys);
+    readCAN();
+
+
+    canMsgSys.can_id = 0x712; // poll the second MPPT
+    mcp2515.sendMessage(&canMsgSys);
+    canMsgSys.can_id = 0x772; // poll the second MPPT
+    mcp2515.sendMessage(&canMsgSys);
+    readCAN();
+}
 void pollSensor() {
     /** Additional data stream template **//*
     if (millis() - timer > config.ds1_ud) {
@@ -586,8 +593,8 @@ void shut_down() { // If called by an interrupt, not sure how much of this we wo
 void flag_status(){
   if (millis() - flag_timer > 500) {
     flag_timer = millis();
-    sendStatus(4, 0xFF);
-    canMsgStatus.data[4] = 0xAA; //lower the flag again so
+    sendStatus(4, STATUS_OK);
+    canMsgStatus.data[4] = STATUS_NOTOK; //lower the flag again so
   } 
 }
 
