@@ -16,6 +16,10 @@
 #define GPSECHO  false
 #define DEBUG false
 
+#define STATUS_OK 0xFF
+#define STATUS_NOTOK 0x0A
+#define STATUS_UNKNOWN 0x00
+
 #ifdef DEBUG
  #define DEBUG_PRINT(x)  Serial.print (x)
  #define DEBUG_PRINTLN(x)  Serial.println (x)
@@ -50,6 +54,7 @@ Adafruit_GPS GPS(&GPSSerial); // GPS connected to GPS_SL serial port
 
 struct can_frame canMsg;    // Where the received CAN message will be stored
 struct can_frame canMsgSys; // System generated CAN frames - no need for the different frames, just helps keeping track of data
+struct can_frame canMsgStatus; //Reserved for telem system status {power, SD fail, GPS, config, flag, spare1, spare2, spare3}
 
 uint8_t my_bytes[sizeof(float)];    // For conversion of floats to bytes
 uint8_t byte_buffer[11];            // For CAN message in byte format to be transmitted without crc. 11 is the max size = 2+1+dlc
@@ -68,6 +73,7 @@ struct conf {
     const char* speedtype;
     int mode;
     unsigned int mppt_update;
+    unsigned int status_update;
     double value0; 
     double value1;
 };
@@ -87,6 +93,8 @@ uint32_t timer = millis();
 uint32_t sd_timer = millis();
 uint32_t mppt_timer = millis();
 uint32_t flag_timer = millis();
+uint32_t status_timer = millis();
+
 
 void setup() {
     /* Start the serial ports */
@@ -96,7 +104,15 @@ void setup() {
     GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
     GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
 
-    sendStatus(0, 0xFF); // Position 0 is power. Send status that telem power is on (0xFF)
+
+    canMsgStatus.can_id  = 0x111;
+    canMsgStatus.can_dlc = 8;
+    // Clear buffer
+    for (int i = 0; i<sizeof(canMsgStatus.data); i++)  {
+        canMsgStatus.data[i] = STATUS_UNKNOWN;
+    }
+
+    sendStatus(0, STATUS_OK); // Position 0 is power. Send status that telem power is on (0xFF)
 
     // make sure that the default chip select pin is set to
     // output, even if you don't use it:
@@ -110,23 +126,7 @@ void setup() {
     DEBUG_PRINTLN("Setting up");
     DEBUG_PRINT("Initializing SD card...");
 
-    /* Start the SD card */
-    if (!SD.begin(SD_SS)) {
-        DEBUG_PRINTLN("SD card failed, or not present");
-        sendStatus(1, 0xAA);    // SD card failed
-        // Need to move on
-        /// Perhaps try again later?
-        /// Set a status LED on dashboard so we know what's happened?
-        // Use some defaults
-        set_defaults(config);
-    }
-    else if (SD.begin(SD_SS)){
-        DEBUG_PRINTLN("SD card initialised");
-        sendStatus(1, 0xFF);    // SD card success
 
-        // Load mode and pop it in config
-        load_config(conf_filename, config); ///Config here is redundant - it is currently global
-    }
 
     /* Check current date and time from GPS */ // - this could do with a whole load of squishing
     DEBUG_PRINT("Checking GPS...");
@@ -139,13 +139,14 @@ void setup() {
             if (GPS.parse(GPS.lastNMEA())) {
                 if (!(GPS.year == 0) && !(GPS.year == 80)) { // Before we think life is good, make sure we've actually go the date right - sometimes will read as 0 even when we have time or get it wrong and send 80
                     DEBUG_PRINTLN(">>> Time acquired <<<");
-                    sendStatus(2, 0xBB);    // GPS time acquired
+                    sendStatus(2, STATUS_OK);    // GPS time acquired
                     print_datetimefix();
                     break;
                 }
                 else {
                     //DEBUG_PRINTLN("Time not yet acquired:");
                     //print_datetimefix();
+                    sendStatus(2, STATUS_NOTOK);  //GPS time not aquired
                 }
             }
             else {
@@ -157,8 +158,24 @@ void setup() {
             break;
         }
     }
-
-    log_start_up(log_filename); // Create new file with. log_filename will be modified accordingly. File is dataFile
+    
+    /* Start the SD card */
+    if (!SD.begin(SD_SS)) {
+        DEBUG_PRINTLN("SD card failed, or not present");
+        sendStatus(1, STATUS_NOTOK);    // SD card failed
+        // Need to move on
+        /// Perhaps try again later?
+        /// Set a status LED on dashboard so we know what's happened?
+        // Use some defaults
+        set_defaults(config);
+    }
+    else if (SD.begin(SD_SS)){
+        DEBUG_PRINTLN("SD card initialised"); //do not send writing to SD card status untill actually writing to it in log_start_up
+        // Load mode and pop it in config
+        load_config(conf_filename, config); 
+        log_start_up(log_filename); // Create new file with. log_filename will be modified accordingly. File is dataFile
+    }
+    
     //attachInterrupt(digitalPinToInterrupt(SLEEP_INT), shut_down, FALLING); // Do this now so we don't try and close a file which doesn't exist
     attachInterrupt(digitalPinToInterrupt(FLAG_INT), flag_status, FALLING);
     pinMode(SLEEP_INT, INPUT_PULLUP);
@@ -178,14 +195,13 @@ void loop() {
     }
     if (!digitalRead(FLAG_INT)) {
         flag_status();
-        // We return here if SLEEP_INT goes high; we'll exit the loop
     }
     /* Read incoming CAN message and treat accordingly */
     readCAN();
 
     /* Update GPS */
     doGPS();
-    pollMPPT();
+    
     /* Poll additional sensors */
     pollSensor();
 
@@ -195,7 +211,18 @@ void loop() {
         dataFile.flush();
         DEBUG_PRINTLN("<<<<<<<< FLUSH >>>>>>>>");
     }
-  
+    /* send update*/
+    if ((millis() - status_timer) > config.status_update) {
+        status_timer = millis();
+        sendStatus(0,STATUS_OK);
+        DEBUG_PRINTLN("SEND STATUS");
+    }
+    /* send empty can to MPPT to request data */
+    if (millis() - mppt_timer > config.mppt_update) {
+        mppt_timer = millis();
+        pollMPPT();
+        DEBUG_PRINTLN("POLL MPPT");
+    }
 }
 
 void readCAN () {
@@ -215,18 +242,14 @@ void readCAN () {
 }
 
 void sendStatus(int pos, uint8_t val) { // Could preserve a separate system status CAN message which gets sent periodically/upon change.
-    canMsgSys.can_id  = 0x111;
-    canMsgSys.can_dlc = 8;
-    
-    // Clear buffer
-    for (int i = 0; i<sizeof(canMsgSys.data); i++)  {
-        canMsgSys.data[i] = 0;
+    // Update desired value
+    canMsgStatus.data[pos] = val;
+    if (!(GPS.year == 0) && !(GPS.year == 80)) { // Before we think life is good, make sure we've actually go the date right - sometimes will read as 0 even when we have time or get it wrong and send 80
+    canMsgStatus.data[2] = STATUS_OK;// GPS time acquired
+    }else{
+    canMsgStatus.data[2] = STATUS_NOTOK;
     }
-
-    // Insert desired value
-    canMsgSys.data[pos] = val;
-
-    sendMessage(canMsgSys);
+    sendMessage(canMsgStatus);
 }
 
 void sendMessage(struct can_frame msg) {
@@ -386,25 +409,27 @@ void gps2canMsgs() {
 }
 
 
-void pollMPPT() {//not working
-    /** Additional data stream template **/
-    if (millis() - mppt_timer > config.mppt_update) {
-        //DEBUG_PRINTLN("MPPT1 is being read and transmitted."); 
-        mppt_timer = millis(); // reset the timer
-        int ds1val_a;
-        ds1val_a = '0x00000000';
-        canMsgSys.can_id = 0x711;
-        canMsgSys.can_dlc = sizeof(ds1val_a);
-        canMsgSys.data[0] = (ds1val_a >> 32) & 0xFF;
-        canMsgSys.data[1] = (ds1val_a >> 16) & 0xFF; 
-        canMsgSys.data[2] = (ds1val_a >> 8) & 0xFF; 
-        canMsgSys.data[3] = (ds1val_a >> 0) & 0xFF; 
-        mcp2515.sendMessage(&canMsgSys);
-        canMsgSys.can_id = 0x712; // poll the second MPPT
-        mcp2515.sendMessage(&canMsgSys);
-    }
-}
 
+void pollMPPT() {
+  /** Additional data stream template **/
+    canMsgSys.can_id = 0x711; // poll the second MPPT
+    canMsgSys.can_dlc = 8;
+    // Clear buffer
+    for (int i = 0; i<sizeof(canMsgSys.data); i++)  {
+        canMsgSys.data[i] = 0x00;
+    }
+    mcp2515.sendMessage(&canMsgSys);
+    canMsgSys.can_id = 0x771; // poll the second MPPT
+    mcp2515.sendMessage(&canMsgSys);
+    readCAN();
+
+
+    canMsgSys.can_id = 0x712; // poll the second MPPT
+    mcp2515.sendMessage(&canMsgSys);
+    canMsgSys.can_id = 0x772; // poll the second MPPT
+    mcp2515.sendMessage(&canMsgSys);
+    readCAN();
+}
 void pollSensor() {
     /** Additional data stream template **//*
     if (millis() - timer > config.ds1_ud) {
@@ -484,6 +509,7 @@ void load_config(const char *filename, conf &config) {
         DEBUG_PRINTLN(error.f_str());
         // But also do what we can and use some defaults
         set_defaults(config);
+        sendStatus(3, STATUS_NOTOK);
         return;
     }
 
@@ -494,6 +520,7 @@ void load_config(const char *filename, conf &config) {
     config.speedtype = doc["speedtype"];    DEBUG_PRINT("SPEEDTYPE:\t");    DEBUG_PRINTLN(config.speedtype);
     config.mode = doc["mode"];              DEBUG_PRINT("MODE:\t");         DEBUG_PRINTLN(config.mode);
     config.gps_update = doc["mppt_update"]; DEBUG_PRINT("mppt UPDATE:\t");  DEBUG_PRINTLN(config.mppt_update);
+    config.gps_update = doc["status_update"]; DEBUG_PRINT("status UPDATE:\t");  DEBUG_PRINTLN(config.status_update);
     config.value0 = doc["somevalues"][0];   DEBUG_PRINT("VAL0:\t");         DEBUG_PRINTLN(config.value0);
     config.value1 = doc["somevalues"][1];   DEBUG_PRINT("VAL1:\t");         DEBUG_PRINTLN(config.value1);
 
@@ -504,6 +531,7 @@ void load_config(const char *filename, conf &config) {
     // CAN Message configuration file
     // This is big so can't just do at once: https://arduinojson.org/v6/how-to/deserialize-a-very-large-document/
     // Cycle through and extract present CAN IDs and frequency rates. Append each to separate array
+    sendStatus(3, STATUS_OK);
 }
 
 void save_config(const char *filename, conf &config) { // We might want to
@@ -522,6 +550,7 @@ void set_defaults(conf &config) {
     config.speedtype = "kmh";
     config.mode = 1;
     config.mppt_update = 1000;
+    config.status_update = 1000;
     config.value0 = -1;
     config.value1 = -1;
     DEBUG_PRINTLN("Using defaults");
@@ -564,7 +593,8 @@ void shut_down() { // If called by an interrupt, not sure how much of this we wo
 void flag_status(){
   if (millis() - flag_timer > 500) {
     flag_timer = millis();
-    sendStatus(4, 0xFF);
+    sendStatus(4, STATUS_OK);
+    canMsgStatus.data[4] = STATUS_NOTOK; //lower the flag again so
   } 
 }
 
@@ -606,7 +636,7 @@ void log_start_up(char *filename){
         filename[11-4] = i%10 + '0';
         if (! SD.exists(filename)) {
             dataFile = SD.open(filename, FILE_WRITE); // Only create a new file which doesn't exist
-            if (dataFile) {
+             if (dataFile) {
                 DEBUG_PRINT("Opening file: ");
                 DEBUG_PRINTLN(filename);
                 // Log our current configuration in some form
@@ -614,7 +644,7 @@ void log_start_up(char *filename){
                 dataFile.println("ESC ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1");
                 dataFile.println("");
                 //dataFile.flush();
-                sendStatus(3, 100+i);   // Config file opened with i=i
+                sendStatus(1, 100+i);    // writing to SD card
             }
             // if the file isn't open, pop up an error:
             else {
@@ -622,7 +652,7 @@ void log_start_up(char *filename){
                 DEBUG_PRINTLN(filename);
                 /// Some sort of backup filename here?
                 // will only log in loop if dataFile==True
-                sendStatus(3, 90);   // Config file not opened
+                sendStatus(1, STATUS_NOTOK);   // notwriting to SD card
             }
             return;
         }

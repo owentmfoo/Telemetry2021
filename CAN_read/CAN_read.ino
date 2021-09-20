@@ -7,6 +7,8 @@ MCP2515 mcp2515(10);
 uint8_t SPICS = 10;
 int i = 1;
 
+
+
 uint32_t mppt_timer = millis();
 void setup() {
 

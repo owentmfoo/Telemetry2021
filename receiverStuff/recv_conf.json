@@ -3,80 +3,11 @@
         {
             "name": "System status messages",
             "source": "Telemetry",
-            "structure": [
-                "uint8",
-                "uint8",
-                "uint8",
-                "uint8",
-                "uint8",
-                "uint8",
-                "uint8",
-                "uint8"
-            ],
-            "fields": [
-                "power",
-                "sd_fail",
-                "GPS",
-                "config",
-                "spare1",
-                "spare2",
-                "spare3",
-                "spare4"
-            ],
-            "labels": [
-                "Power",
-                "SD Fail",
-                "GPS",
-                "config",
-                "spare1",
-                "spare2",
-                "spare3",
-                "spare4"
-            ],
-            "ylims": [
-                [
-                    0,
-                    100
-                ],
-                [
-                    0,
-                    100
-                ],
-                [
-                    0,
-                    100
-                ],
-                [
-                    0,
-                    100
-                ],
-                [
-                    0,
-                    100
-                ],
-                [
-                    0,
-                    100
-                ],
-                [
-                    0,
-                    100
-                ],
-                [
-                    0,
-                    100
-                ]
-            ],
-            "maxnumel": [
-                20,
-                20,
-                20,
-                20,
-                20,
-                20,
-                20,
-                20
-            ]
+            "structure": ["uint8","uint8","uint8","uint8","uint8","uint8","uint8","uint8"],
+            "fields": ["power","sd_fail","GPS","config","flag","spare2","spare3","spare4"],
+            "labels": ["Power", "Writing to SD","GPS Time Obtained","Config","Flag","spare2","spare3","spare4"],
+            "ylims": [[0, 100], [0, 100], [0, 100], [0, 100],[0, 100], [0, 100], [0, 100], [0, 100]],
+            "maxnumel": [20, 20, 20, 20,20, 20, 20, 20]
         }
     ],
     "0x501": [
