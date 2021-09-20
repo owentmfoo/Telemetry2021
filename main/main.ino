@@ -177,7 +177,7 @@ void setup() {
     }
     
     //attachInterrupt(digitalPinToInterrupt(SLEEP_INT), shut_down, FALLING); // Do this now so we don't try and close a file which doesn't exist
-    attachInterrupt(digitalPinToInterrupt(FLAG_INT), flag_status, FALLING);
+    //attachInterrupt(digitalPinToInterrupt(FLAG_INT), flag_status, FALLING);
     pinMode(SLEEP_INT, INPUT_PULLUP);
     pinMode(FLAG_INT, INPUT_PULLUP);
   
@@ -194,7 +194,7 @@ void loop() {
         DEBUG_PRINTLN("We're back");
     }
     if (!digitalRead(FLAG_INT)) {
-        flag_status();
+        flag_status();//maybe xbee missed it sometimes?
     }
     /* Read incoming CAN message and treat accordingly */
     readCAN();
@@ -594,6 +594,7 @@ void flag_status(){
   if (millis() - flag_timer > 500) {
     flag_timer = millis();
     sendStatus(4, STATUS_OK);
+    DEBUG_PRINTLN("FLAG");
     canMsgStatus.data[4] = STATUS_NOTOK; //lower the flag again so
   } 
 }

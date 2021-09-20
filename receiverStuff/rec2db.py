@@ -8,8 +8,9 @@ import struct
 import numpy as np
 from can import Message
 from influxdb import InfluxDBClient
+import os
 
-json_path = 'receiverStuff/recv_conf.json'
+json_path = 'recv_conf.json'
 serial_port = '/dev/ttyUSB0'  # '/dev/ttyUSB0', '/dev/ttyAMA0'
 
 """
@@ -88,7 +89,7 @@ def bytes2canmsg(can_bytes, can_timestamp) -> can.Message:
     return message
 
 
-def parse_msg(message) -> None:
+def parse_msg(message):
     '''
     :param message:
     :return None:
@@ -97,6 +98,7 @@ def parse_msg(message) -> None:
         lookup = json.load(json_file)
         # Convert ID to a string in the form "0xABC1"
         can_id = "0x%0.2X" % message.arbitration_id
+        time = datetime.datetime.utcnow()
         if can_id in lookup:
 
             # Maybe compare apparent size to DLC and error if disagree. Might have to do before otherwise too late
@@ -140,7 +142,7 @@ def parse_msg(message) -> None:
 
                 # Save to database
                 print(lookup[can_id][0]["source"])
-                time = datetime.datetime.utcnow()
+
                 print(time)
 
                 body = [
@@ -169,9 +171,21 @@ def parse_msg(message) -> None:
                     f.write(body)
                     f.write('\n')
                 """
+            return body
 
         else:
             print("ID %s not found" % can_id)
+            body = [
+                {
+                    "measurement": "Unknown",
+                    "time": time,
+
+                    "fields": {
+                        ["Unknown"],
+                    }
+                }
+            ]
+            return body  # still return the same type of obj
 
 
 """
@@ -245,11 +259,14 @@ def up_char(data, offset):
     offset += 1
     return x, offset
 
+
 def up_char4(data, offset):
-    [a,b,c,d] = struct.unpack('>cccc', data[offset:offset + 4])  # todo: confirm actually working
+    [a, b, c, d] = struct.unpack('>cccc', data[offset:offset + 4])  # todo: confirm actually working
     offset += 4
-    x = b''.join([a,b,c,d])
+    x = b''.join([a, b, c, d])
     return x, offset
+
+
 """
 End of unpacking functions
 """
@@ -268,7 +285,7 @@ with open(json_path) as json_file:
     for can_id in lookup:
         fields = lookup[can_id][0]["fields"]
         ndx = 0  # Where are we? So we can find adjacent data
-        for varName in fields: # todo: use enumerate?
+        for varName in fields:  # todo: use enumerate?
             print(varName)
             dataSet[varName] = np.array([0])  # Might be better if empty but numbers go weird?
             timeVals[varName] = np.array([0])
@@ -290,7 +307,26 @@ if __name__ == "__main__":
     new_data = False
     # valid_data = False
 
-
+    # update system time
+    while True:
+        new_data, the_bytes = recv_bytes(new_data)
+        local_can_time = time.time()
+        if new_data:
+            # time = datetime.utcnow()
+            new_data = False  # Data only stops being new when it's used
+            message = bytes2canmsg(the_bytes, local_can_time)
+            print(message)
+            if message.arbitration_id == 0xF6:  # wait till GPS message comes in and set time first
+                hour, offset = up_uint8(message.data, 0)
+                minute, offset = up_uint8(message.data, offset)
+                second, offset = up_uint8(message.data, offset)
+                year, offset = up_uint8(message.data, offset)
+                month, offset = up_uint8(message.data, offset)
+                day, offset = up_uint8(message.data, offset)
+                GPSTime = datetime.datetime(year,month,day,hour,minute,second,tzinfo=datetime.timezone.utc)
+                os.system(f"sudo date -s \'{GPSTime.strftime('%Y-%m-%d')} {GPSTime.strftime('%H:%M:%S')}\'")
+                break
+    # os.system(f'sudo date -s {date}')
 
     # Make a log file to write to - this should be changed so the name updates
     # this has been moved up
@@ -304,7 +340,7 @@ if __name__ == "__main__":
             local_can_time = time.time()  # There's some work to be done to align with GPS time
             msg = bytes2canmsg(the_bytes, local_can_time)
             print(msg)
-            parse_msg(msg)
+            rec = parse_msg(msg)
             # print(dataSet)
 
         time.sleep(0.05)

@@ -16,8 +16,8 @@
             "source": "Driver Controls",
             "passratio": 2,
             "structure": [
-                "int32",
-                "int32"
+                "float322",
+                "float32"
             ],
             "fields": [
                 "drv_vel",
@@ -49,8 +49,8 @@
             "source": "Driver Controls",
             "passratio": 2,
             "structure": [
-                "int32",
-                "int32"
+                "float32",
+                "float32"
             ],
             "fields": [
                 "0",
