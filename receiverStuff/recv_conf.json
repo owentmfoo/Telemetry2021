@@ -735,6 +735,47 @@
             ]
         }
     ],
+    "0x771": [
+        {
+            "name": "MPPT1",
+            "source": "MPPT",
+            "structure": [
+                "mppt_msb","uint8","mppt_msb","uint8","mppt_msb","uint8","uint8"
+            ],
+            "fields": [
+            "Flag+UinMSB","Uin","IinMSB","Iin","UoutMSB","Uout","ambient_temp"
+            ],
+            "labels": [
+            "Flag and Uin","Input Voltage","Iin MSB","Input MPPT Current","Uout MSB","Output Voltage","Ambient Temperature"
+            ],
+            "ylims": [
+                [0, 100],[0, 100],[0, 100],[0, 100],[0, 100],[0, 100]
+            ],
+            "maxnumel": [
+
+            ]
+        }
+    ],
+        "0x772": [
+        {
+            "name": "MPPT2",
+            "source": "MPPT",
+            "structure": [
+                "mppt_msb","uint8","mppt_msb","uint8","mppt_msb","uint8","uint8"
+            ],
+            "fields": [
+            "Flag+UinMSB","Uin","IinMSB","Iin","UoutMSB","Uout","ambient_temp"
+            ],
+            "labels": [
+            "Flag and Uin","Input Voltage","Iin MSB","Input MPPT Current","Uout MSB","Output Voltage","Ambient Temperature"
+            ],
+            "ylims": [
+                [0, 100],[0, 100],[0, 100],[0, 100],[0, 100],[0, 100]
+            ],
+            "maxnumel": [
+            ]
+        }
+    ],
     "0x123": [
         {
             "name": "Serial Tester Spoof Message",

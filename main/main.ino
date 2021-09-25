@@ -177,7 +177,7 @@ void setup() {
     }
     
     //attachInterrupt(digitalPinToInterrupt(SLEEP_INT), shut_down, FALLING); // Do this now so we don't try and close a file which doesn't exist
-    //attachInterrupt(digitalPinToInterrupt(FLAG_INT), flag_status, FALLING);
+    attachInterrupt(digitalPinToInterrupt(FLAG_INT), flag_status, FALLING);
     pinMode(SLEEP_INT, INPUT_PULLUP);
     pinMode(FLAG_INT, INPUT_PULLUP);
   
@@ -249,11 +249,14 @@ void sendStatus(int pos, uint8_t val) { // Could preserve a separate system stat
     }else{
     canMsgStatus.data[2] = STATUS_NOTOK;
     }
+    if ((millis() - flag_timer) > config.status_update * 3){
+      canMsgStatus.data[4] = STATUS_NOTOK;
+    }
     sendMessage(canMsgStatus);
 }
 
 void sendMessage(struct can_frame msg) {
-    /* Sends CAN style message to XBee and logs to SD card.
+    /* Sends CAN style message to XBee and logs to SD card. 
      * By having in one function means we can be sure everything is robust to lack of SD card for example. */
     
     // Escape character delimter to spot the data
@@ -591,12 +594,9 @@ void shut_down() { // If called by an interrupt, not sure how much of this we wo
 }
 
 void flag_status(){
-  if (millis() - flag_timer > 500) {
     flag_timer = millis();
     sendStatus(4, STATUS_OK);
     DEBUG_PRINTLN("FLAG");
-    canMsgStatus.data[4] = STATUS_NOTOK; //lower the flag again so
-  } 
 }
 
 void sd_info(){
