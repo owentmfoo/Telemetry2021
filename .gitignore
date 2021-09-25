@@ -132,3 +132,4 @@ dmypy.json
 .pyre/
 /~$CAN Bus Data.xlsx
 /CAN_record/
+/docs/

@@ -111,7 +111,7 @@ def parse_msg(message):
                 # Send to the right function for the right data
                 types = {
                     "float32": up_float,
-                    "float32_le":up_float_le,
+                    "float32_le": up_float_le,
                     "int32": up_int32,
                     "uint32": up_uint32,
                     "int16": up_int16,
@@ -120,6 +120,8 @@ def parse_msg(message):
                     "uint8": up_uint8,
                     "char": up_char,
                     "char4": up_char4,
+                    "mppt_msb": mppt_msb,
+                    "mppt_uint10": mppt_uint10, # to be decided
                 }
                 value, offset = types[dataType](message.data, offset)
 
@@ -219,11 +221,13 @@ def up_float(data, offset):
     offset += 4
     return x, offset
 
-def up_float_le(data, offset):
+
+def up_float_le(data, offset):  # unpack the bytes from the other side
     [x] = struct.unpack('<f', data[offset:offset + 4])
     # Could use: struct.unpack_from(format, /, buffer, offset=offset)
     offset += 4
     return x, offset
+
 
 def up_int32(data, offset):
     [x] = struct.unpack('>i', data[offset:offset + 4])
@@ -268,12 +272,26 @@ def up_char(data, offset):
 
 
 def up_char4(data, offset):
-    [a, b, c, d] = struct.unpack('>cccc', data[offset:offset + 4])  # todo: confirm actually working
+    [a, b, c, d] = struct.unpack('>cccc', data[offset:offset + 4])
     offset += 4
     x = b''.join([a, b, c, d])
     return x, offset
 
 
+def mppt_msb(data, offset):  # for extracting MPPT msb in the last 2 bit of this byte and the rest is in the next byte.
+    x, offset = up_uint8(data, offset)
+    x = x % 4  # make sure only extract the last 2 bit ass there might be flags in the first 4 bit.
+    return x, offset
+
+
+def mppt_uint10(data, offset):    # todo: decide what method to unpack MPPT data and function name
+    offset -= 1
+    if offset < 0:
+        raise IndexError(f'Cannot obtain msb from the last byte, current offset is {offset}') # error out of range
+        return 0
+    x, offset = mppt_msb(data, offset)
+    y, offset = up_uint8(data, offset)
+    return x*256+y, offset
 """
 End of unpacking functions
 """
@@ -292,7 +310,7 @@ with open(json_path) as json_file:
     for can_id in lookup:
         fields = lookup[can_id][0]["fields"]
         ndx = 0  # Where are we? So we can find adjacent data
-        for varName in fields:  # todo: use enumerate?
+        for varName in fields:  # can use enumerate if wanted, kept index for beginner readability
             print(varName)
             dataSet[varName] = np.array([0])  # Might be better if empty but numbers go weird?
             timeVals[varName] = np.array([0])
@@ -313,27 +331,6 @@ if __name__ == "__main__":
 
     new_data = False
     # valid_data = False
-
-    # update system time
-    while True:
-        new_data, the_bytes = recv_bytes(new_data)
-        local_can_time = time.time()
-        if new_data:
-            # time = datetime.utcnow()
-            new_data = False  # Data only stops being new when it's used
-            message = bytes2canmsg(the_bytes, local_can_time)
-            print(message)
-            if message.arbitration_id == 0xF6:  # wait till GPS message comes in and set time first
-                hour, offset = up_uint8(message.data, 0)
-                minute, offset = up_uint8(message.data, offset)
-                second, offset = up_uint8(message.data, offset)
-                year, offset = up_uint8(message.data, offset)
-                month, offset = up_uint8(message.data, offset)
-                day, offset = up_uint8(message.data, offset)
-                GPSTime = datetime.datetime(year,month,day,hour,minute,second,tzinfo=datetime.timezone.utc)
-                os.system(f"sudo date -s \'{GPSTime.strftime('%Y-%m-%d')} {GPSTime.strftime('%H:%M:%S')}\'")
-                break
-    # os.system(f'sudo date -s {date}')
 
     # Make a log file to write to - this should be changed so the name updates
     # this has been moved up
