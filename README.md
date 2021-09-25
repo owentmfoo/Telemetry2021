@@ -6,5 +6,5 @@ SD card need to be formated to SAT32 or SAT 16 (and use SAT 16 where possible)
 
 `rec2db.py` need to start after the influx db server have started (systemd servce called `influxdb.service`)
 
+`main.ino` to load onto the adruino mega (waah..)
 
-`main.ino` to load onto the mega (waah..)
