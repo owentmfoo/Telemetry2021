@@ -19,8 +19,8 @@ Database parameters
 # influx configuration - edit these
 ifuser = "admin"
 ifpass = "password"
-ifdb = "home"
-ifhost = "192.168.0.174"
+ifdb = "STUK2_Dunsfold"
+ifhost = "127.0.0.1"
 ifport = 8086
 # measurement_name = "system"
 
