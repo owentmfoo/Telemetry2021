@@ -1,0 +1,2 @@
+#define USE_MSG_Telemetry_SystemStatusMessages
+#define PROCESS_ALL_MSG
