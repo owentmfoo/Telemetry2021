@@ -7,3 +7,4 @@ void powerStatus(); //Power check
 void flagStatus(); //Marker switch check
 
 void updateGPS(); //Update GPS
+void readGPS(); //Get GPS to read

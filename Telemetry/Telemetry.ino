@@ -9,7 +9,7 @@
 #include "SensorInputs.hpp"
 
 //pins
-#define MCP_SS 10 //was 51
+#define MCP_SS 10 //was 51 or 10
 #define SLEEP_INT 33
 #define FLAG_INT 22
 
@@ -18,7 +18,7 @@ extern conf config;
 extern File dataFile;
 
 void setup() { //dont forget to change bitrate to 50KBPS
-  Serial.begin(9600);
+  Serial.begin(115200);
   setupSensorInputs();
   setupSD(); //must be done after sensor inputs because this needs GPS
   setupSending();
@@ -52,6 +52,7 @@ void loop() {
   }
 
   /* Update GPS */
+  readGPS();
   if((millis() - gps_timer) > config.gps_update) {
     gps_timer = millis();
     updateGPS();
