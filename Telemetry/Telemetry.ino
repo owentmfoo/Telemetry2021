@@ -1,5 +1,6 @@
 #include "src/CANApi/CanApiv03.hpp"
 #include "SD.hpp"
+#include <SD.h>
 #include "SendMessage.hpp"
 #include <Adafruit_GPS.h>
 #include "SerialDebugMacros.hpp"
@@ -14,6 +15,7 @@
 
 CANHelper::CanMsgHandler CANHandler(MCP_SS);
 extern conf config;
+extern File dataFile;
 
 void setup() { //dont forget to change bitrate to 50KBPS
   Serial.begin(9600);
@@ -33,9 +35,30 @@ void setup() { //dont forget to change bitrate to 50KBPS
   Serial.println("Setup complete");
 }
 
+uint32_t sd_timer = millis();
+uint32_t status_timer = millis();
 void loop() {
-  Serial.println("Reading...");
-  CANHandler.read();
+  powerStatus();  // Check power status
+  flagStatus();   // Check flag
+  CANHandler.read();      // Read incoming CAN message and treat accordingly
+  updateGPS();        // Update GPS
+  //pollSensor();   // Poll additional sensors
+
+  /* Flush SD file at interval defined in config file */
+  if ((millis() - sd_timer) > config.sd_update) {
+      sd_timer = millis();
+      dataFile.flush();
+      DEBUG_PRINTLN("SD Flush");
+  }
+
+  /* Send system status update at desired interval */
+  if ((millis() - status_timer) > config.status_update) {
+      status_timer = millis();
+      updateStatus();
+  }
+
+  //Serial.println("Reading...");
+  //CANHandler.read();
 
   Serial.println();
   delay(1000);

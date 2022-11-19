@@ -91,7 +91,7 @@ void setupSensorInputs() {
   }
 }
 
-void doGPS() {
+void updateGPS() {
     char c = GPS.read(); //check why reading more frequently than logging. (reads every loop but only logs after a certain time interval). Not sure if necessary
     //if (millis() - timer > config.gps_update) { //handled in calling code (Telemetry.ino)
         //timer = millis(); // reset the timer

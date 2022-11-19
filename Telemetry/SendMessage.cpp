@@ -29,11 +29,12 @@ void out_byte(uint8_t b) {
 
 #ifdef LOG_TO_SERIAL
     Serial.print(b, HEX);
+    Serial.print(" ");
 #endif
-    /*if (config.serialCanMsg == 1) {
-        Serial.print(b, HEX);
-        Serial.print(" ");
-    }*/
+    if(dataFile) {
+      dataFile.print(b, HEX);
+      dataFile.print(" ");
+    }
     /*if (dataFile) {
         dataFile.print(b, HEX);
         dataFile.print(" ");
@@ -67,6 +68,9 @@ void sendMessage(CANHelper::Messages::CANMsg& msg) {
      */
     /*Serial.print("RECIEVED: ");
     Serial.println(msg.can_id, HEX);*/
+    //Serial.println(msg.metadata.id, HEX);
+    //Serial.println(msg.metadata.dlc);
+
     // Escape character delimter to spot the data
     out_byte(0x7E);
     
@@ -83,10 +87,9 @@ void sendMessage(CANHelper::Messages::CANMsg& msg) {
     byte_buffer[1] = can_id_b1;
     byte_buffer[2] = msg.metadata.dlc;
 
-    // Send data to XBee plus add to byte_buffer
+    // Add data to byte buffer
     can_frame& castMsg = (can_frame&)msg;
     for (int i = 0; i < msg.metadata.dlc; i++)  {
-        out_byte(castMsg.data[i]);
         byte_buffer[i+3] = castMsg.data[i];
     }
 
@@ -94,7 +97,6 @@ void sendMessage(CANHelper::Messages::CANMsg& msg) {
     gencrc(); //regen CRC with new data in byte buffer
 
     //Send bytes
-    XBeeSerial.write(0x7E); //escape character to act as seperator between messages in stream.
     for(int i = 0; i < byte_buffer[2] + 5; i++) { //byte_buffer[2] is the dlc
       out_byte(byte_buffer[i]);
     }
