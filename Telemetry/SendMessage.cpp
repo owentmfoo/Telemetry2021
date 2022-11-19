@@ -114,3 +114,7 @@ void sendMessage(CANHelper::Messages::CANMsg& msg) {
     }*///?
     //dataFile.println();
 }
+
+void sendMessage(can_frame& msg) {
+  sendMessage((CANHelper::Messages::CANMsg&) msg);
+}

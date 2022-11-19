@@ -4,7 +4,6 @@
 CANHelper::Messages::Telemetry::_SystemStatusMessages sysStatus; //access in all other compilation units
 
 void updateStatus() {
-  //WIP.
   sendMessage(sysStatus);
 }
 

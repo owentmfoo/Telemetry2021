@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 #include "src/CANApi/CanApiv03.hpp"
 
-#define SD_SS 12 //was 53
+#define SD_SS 53 //was 12 or 53
 #define CONFIG_FILENAME "config.txt"
 
 conf config;
@@ -78,13 +78,14 @@ void load_config() {
 void log_start_up() {
     // filename is "dataYYMMDD00.csv"
     // https://learn.adafruit.com/adafruit-data-logger-shield/using-the-real-time-clock-3
+    DEBUG_PRINTLN("Starting SD log");
 
     // Get date. If GPS signal is not available this will default to 00/00/00
     int8_t YY = time.data.GpsYear;
     int8_t MM = time.data.GpsMonth;
     int8_t DD = time.data.GpsDay;
 
-    char filename[12]; //"YYMMDD00.txt" Filename is max 12 characters long
+    char filename[13]; //"YYMMDD00.txt" Filename is max 12 characters long
 
     // Replace YYMMDD with date
     filename[0] = YY/10 + '0';
@@ -93,6 +94,12 @@ void log_start_up() {
     filename[3] = MM%10 + '0';
     filename[4] = DD/10 + '0';
     filename[5] = DD%10 + '0';
+    
+    filename[8] = '.';
+    filename[9] = 't';
+    filename[10] = 'x';
+    filename[11] = 't';
+    filename[12] = '\0';
 
     // If we've already recorded today, +1 to trailing number
     for (uint8_t i = 0; i < 100; i++) {
@@ -101,7 +108,8 @@ void log_start_up() {
         if (! SD.exists(filename)) {
             dataFile = SD.open(filename, FILE_WRITE); // Only create a new file which doesn't exist
             if (dataFile) {
-                DEBUG_PRINT("Opening file: ");  DEBUG_PRINTLN(filename);
+                DEBUG_PRINT("Opening file: ");
+                DEBUG_PRINTLN(filename);
                 // Log our current configuration in some form
                 //dataFile.println("Logging to file");
                 dataFile.println("ESC ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1");
@@ -113,7 +121,8 @@ void log_start_up() {
             }
             // if the file isn't open, pop up an error:
             else {
-                DEBUG_PRINT("Could not open file: ");   DEBUG_PRINTLN(filename);
+                DEBUG_PRINT("Could not open file: ");
+                DEBUG_PRINTLN(filename);
                 /// Some sort of backup filename here?
                 // will only log in loop if dataFile==True
                 //updateStatus(3, 90);   // Config file not opened
@@ -131,11 +140,11 @@ void setupSD() {
     DEBUG_PRINTLN("SD card initialised");
     setWritingSDStatus(STAT_GOOD);
     load_config(); // Load mode and pop it in config
+
+    log_start_up();
   } else {
     DEBUG_PRINTLN("SD card failed, or not present");
     setWritingSDStatus(STAT_BAD);
     set_defaults(); //use default config
   }
-
-  log_start_up();
 }

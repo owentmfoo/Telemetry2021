@@ -4,6 +4,7 @@
 #include "src/CANApi/CanApiv03.hpp"
 #include "StatusMsg.hpp"
 #include "SD.hpp"
+#include "SendMessage.hpp"
 using namespace CANHelper::Messages::Telemetry;
 
 #define GPSSerial Serial1
@@ -29,28 +30,58 @@ void updateTimeCANMsg() {
   time.data.GpsFixquality = GPS.fixquality;
 }
 
-can_frame GPSMessageStore;
+GPSData gpsData; //would be nice if this worked by using 1 can_frame variable rather than a struct of 4
 void gps2canMsgs() {
   // Time + fix
   updateTimeCANMsg();
-  CANHandler.send(time);
+  sendMessage(time);
+
+  // Speed + angle
+  gpsData.speedAngle.data.GpsSpeed = GPS.speed;
+  gpsData.speedAngle.data.GpsAngle = GPS.angle;
+  sendMessage(gpsData.speedAngle);
+
+  // Latitude
+  gpsData.latitude.data.GpsLatitude = GPS.latitude;
+  gpsData.latitude.data.GpsLat = GPS.lat;
+  sendMessage(gpsData.latitude);
+
+  // Longitude
+  gpsData.longitude.data.GpsLongitude = GPS.longitude;
+  gpsData.longitude.data.GpsLon = GPS.lon;
+  sendMessage(gpsData.longitude);
+
+  // Altitude + satellites
+  gpsData.altitudeSatellites.data.GpsAltitude = GPS.altitude;
+  gpsData.altitudeSatellites.data.GpsSatellites = GPS.satellites;
+  sendMessage(gpsData.altitudeSatellites);
+}
+/*can_frame GPSMessageStore;
+void gps2canMsgs() { //doesnt work because casting from can_frame does not add id and dlc
+  // Time + fix
+  updateTimeCANMsg();
+  sendMessage(time);
 
   // Speed + angle
   ((_SpeedAndAngle&) GPSMessageStore).data.GpsSpeed = GPS.speed;
   ((_SpeedAndAngle&) GPSMessageStore).data.GpsAngle = GPS.angle;
+  sendMessage(GPSMessageStore);
 
   // Latitude
   ((_Latitude&) GPSMessageStore).data.GpsLatitude = GPS.latitude;
   ((_Latitude&) GPSMessageStore).data.GpsLat = GPS.lat;
+  sendMessage(GPSMessageStore);
 
   // Longitude
   ((_Longitude&) GPSMessageStore).data.GpsLongitude = GPS.longitude;
   ((_Longitude&) GPSMessageStore).data.GpsLon = GPS.lon;
+  sendMessage(GPSMessageStore);
 
   // Altitude + satellites
   ((_AltitudeAndSatellites&) GPSMessageStore).data.GpsAltitude = GPS.altitude;
   ((_AltitudeAndSatellites&) GPSMessageStore).data.GpsSatellites = GPS.satellites;
-}
+  sendMessage(GPSMessageStore);
+}*/
 
 void setupSensorInputs() {
   GPS.begin(9600);
@@ -59,7 +90,7 @@ void setupSensorInputs() {
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
 
   /* Check current date and time from GPS */ // - this could do with a whole load of squishing
-  DEBUG_PRINT("Checking GPS...");
+  DEBUG_PRINTLN("Checking GPS...");
   uint32_t timer = millis();
   while (1) {
       char c = GPS.read();
@@ -95,14 +126,21 @@ void updateGPS() {
     char c = GPS.read(); //check why reading more frequently than logging. (reads every loop but only logs after a certain time interval). Not sure if necessary
     //if (millis() - timer > config.gps_update) { //handled in calling code (Telemetry.ino)
         //timer = millis(); // reset the timer
+        DEBUG_PRINTLN("Poll GPS");
         if (GPS.newNMEAreceived() && GPS.parse(GPS.lastNMEA())) {
+          DEBUG_PRINTLN("New NMEA received");
+          if(GPS.parse(GPS.lastNMEA())) {
             //print_datetimefix();
             //print_location();
+            DEBUG_PRINTLN("New NMEA parsed");
             gps2canMsgs();  // Convert, send and log time, location etc from GPS
+          } else {
+            DEBUG_PRINTLN("Could not parse new NEMA");            
+          }
+        } else {
+          DEBUG_PRINTLN("No new NEMA received"); 
         }
-        else {
-            //DEBUG_PRINTLN("Don't Do Stuff"); 
-        }
+        gps2canMsgs();
     //}
 }
 

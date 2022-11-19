@@ -37,24 +37,30 @@ void setup() { //dont forget to change bitrate to 50KBPS
 
 uint32_t sd_timer = millis();
 uint32_t status_timer = millis();
+uint32_t gps_timer = millis();
 void loop() {
   powerStatus();  // Check power status
   flagStatus();   // Check flag
   CANHandler.read();      // Read incoming CAN message and treat accordingly
-  updateGPS();        // Update GPS
   //pollSensor();   // Poll additional sensors
 
   /* Flush SD file at interval defined in config file */
   if ((millis() - sd_timer) > config.sd_update) {
-      sd_timer = millis();
-      dataFile.flush();
-      DEBUG_PRINTLN("SD Flush");
+    sd_timer = millis();
+    dataFile.flush();
+    DEBUG_PRINTLN("SD Flush");
+  }
+
+  /* Update GPS */
+  if((millis() - gps_timer) > config.gps_update) {
+    gps_timer = millis();
+    updateGPS();
   }
 
   /* Send system status update at desired interval */
   if ((millis() - status_timer) > config.status_update) {
-      status_timer = millis();
-      updateStatus();
+    status_timer = millis();
+    updateStatus();
   }
 
   //Serial.println("Reading...");
