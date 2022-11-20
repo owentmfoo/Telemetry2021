@@ -88,7 +88,7 @@ void setupSensorInputs() {
   GPS.begin(9600);
 
   //GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
-  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_ALLDATA);
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
 
   /* Check current date and time from GPS */ // - this could do with a whole load of squishing
@@ -139,7 +139,7 @@ void readGPS() {
       DEBUG_PRINTLN("New NMEA parsed");
       //gps2canMsgs();  // Convert, send and log time, location etc from GPS
     } else {
-      DEBUG_PRINTLN("Could not parse new NEMA");            
+      DEBUG_PRINTLN("Could not parse new NMEA");            
     }
   } else {
     DEBUG_PRINTLN("No new NEMA received"); 
