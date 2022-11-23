@@ -21,7 +21,7 @@ void set_defaults() {
     config.gps_update = 2000; // 2000ms update on position and time
     config.sd_update = 2000;
     config.status_update = 500;
-    config.time_fix = 1000;
+    config.time_fix = 20000; //
     config.mppt_update = 1000;
     config.serialCanMsg = 1;    // Default send CAN messages on serial
     config.value0 = -1;
@@ -75,7 +75,7 @@ void load_config() {
     // If wanted to do a bigger file: https://arduinojson.org/v6/how-to/deserialize-a-very-large-document/
 }
 
-void log_start_up() {
+void startSDLog() {
     // filename is "dataYYMMDD00.csv"
     // https://learn.adafruit.com/adafruit-data-logger-shield/using-the-real-time-clock-3
     DEBUG_PRINTLN("Starting SD log");
@@ -140,11 +140,12 @@ void setupSD() {
     DEBUG_PRINTLN("SD card initialised");
     setWritingSDStatus(STAT_GOOD);
     load_config(); // Load mode and pop it in config
-
-    log_start_up();
   } else {
     DEBUG_PRINTLN("SD card failed, or not present");
     setWritingSDStatus(STAT_BAD);
     set_defaults(); //use default config
   }
+
+  //start SD log even when card not present. When it is inserted, log should automatically start writing (without reboot)
+  //startSDLog(); //moved to main file due to how it depends on when GPS starts
 }

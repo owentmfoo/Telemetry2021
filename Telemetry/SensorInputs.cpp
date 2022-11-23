@@ -95,6 +95,8 @@ void setupSensorInputs() {
   /* Check current date and time from GPS */ // - this could do with a whole load of squishing
   DEBUG_PRINTLN("Checking GPS...");
   uint32_t timer = millis();
+  DEBUG_PRINT("GPS time acquire timer: "); DEBUG_PRINTLN(timer);
+  DEBUG_PRINT("GPS time acquire max: "); DEBUG_PRINTLN(config.time_fix);
   while (1) {
       char c = GPS.read();
 #ifdef GPSECHO
@@ -121,8 +123,10 @@ void setupSensorInputs() {
               DEBUG_PRINTLN("parsing failed");
           }
       }
-      if (millis() - timer > config.time_fix) {
+      uint32_t timerCheck = millis();
+      if (timerCheck - timer > config.time_fix) {
           DEBUG_PRINTLN("timeout for time acquisition exceeded.");
+          DEBUG_PRINT("GPS time acquire timer check: "); DEBUG_PRINTLN(timerCheck);
           break;
       }
   }

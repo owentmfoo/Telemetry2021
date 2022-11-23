@@ -13,6 +13,7 @@ struct conf {
 };
 
 void setupSD();
+void startSDLog();
 
 void getConfig();
 

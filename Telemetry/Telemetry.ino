@@ -19,8 +19,9 @@ extern File dataFile;
 
 void setup() { //dont forget to change bitrate to 50KBPS
   Serial.begin(230400);
+  setupSD(); //must be done before sensor inputs because GPS needs this
   setupSensorInputs();
-  setupSD(); //must be done after sensor inputs because this needs GPS
+  startSDLog(); //must be done after sensor inputs because this needs GPS
   setupSending();
 
   //mcp2515.reset(); //Here to remind myself to add to library
