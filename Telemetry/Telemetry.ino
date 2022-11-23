@@ -18,7 +18,6 @@ extern conf config;
 extern File dataFile;
 
 void setup() { //dont forget to change bitrate to 50KBPS
-  Serial.begin(115200);
   setupSensorInputs();
   setupSD(); //must be done after sensor inputs because this needs GPS
   setupSending();
@@ -39,6 +38,8 @@ uint32_t sd_timer = millis();
 uint32_t status_timer = millis();
 uint32_t gps_timer = millis();
 void loop() {
+  Serial.println("LOOP START");
+
   powerStatus();  // Check power status
   flagStatus();   // Check flag
   CANHandler.read();      // Read incoming CAN message and treat accordingly

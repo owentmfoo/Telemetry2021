@@ -8,8 +8,8 @@
 #include "SendMessage.hpp"
 using namespace CANHelper::Messages::Telemetry;
 
-#define GPSSerial Serial1
-#define GPSECHO  true
+#define GPSSerial Serial1 //hardware serial that GPS is connected to
+#define GPSECHO //enables GPS debug messages to serial
 
 //Boolean states
 bool car_on; // = !safestate
@@ -87,17 +87,20 @@ void gps2canMsgs() { //doesnt work because casting from can_frame does not add i
 void setupSensorInputs() {
   GPS.begin(9600);
 
-  //GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
+  //GPS.sendCommand(PGCMD_ANTENNA);
+  //GPSSerial.println(PMTK_Q_RELEASE);
 
   /* Check current date and time from GPS */ // - this could do with a whole load of squishing
   DEBUG_PRINTLN("Checking GPS...");
   uint32_t timer = millis();
   while (1) {
       char c = GPS.read();
-      if (GPSECHO)
+#ifdef GPSECHO
+      if(c)
         DEBUG_PRINT(c);
+#endif
       if (GPS.newNMEAreceived()) {
           //DEBUG_PRINT(GPS.lastNMEA());
           if (GPS.parse(GPS.lastNMEA())) {
@@ -126,12 +129,18 @@ void setupSensorInputs() {
 }
 
 void readGPS() {
-  char c = GPS.read();
-  if (GPSECHO)
-    DEBUG_PRINTLN(c);
-
   DEBUG_PRINTLN("Poll GPS");
-  if (GPS.newNMEAreceived()) {
+  if(!GPS.newNMEAreceived()) {
+    DEBUG_PRINTLN("No new NEMA received");
+#ifdef GPSECHO
+    char c = GPS.read();
+    if(c)
+      DEBUG_PRINT(c);
+#else
+    GPS.read();
+#endif
+  } else {
+  //if (GPS.newNMEAreceived()) {
     DEBUG_PRINTLN("New NMEA received");
     if(GPS.parse(GPS.lastNMEA())) {
       //print_datetimefix();
@@ -141,9 +150,8 @@ void readGPS() {
     } else {
       DEBUG_PRINTLN("Could not parse new NMEA");            
     }
-  } else {
-    DEBUG_PRINTLN("No new NEMA received"); 
   }
+  //debug print NMEA
   DEBUG_PRINT("NMEA: ");
   DEBUG_PRINTLN(GPS.lastNMEA());
 }
