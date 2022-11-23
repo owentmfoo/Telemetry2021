@@ -129,9 +129,9 @@ void setupSensorInputs() {
 }
 
 void readGPS() {
-  DEBUG_PRINTLN("Poll GPS");
+  //DEBUG_PRINTLN("Poll GPS");
   if(!GPS.newNMEAreceived()) {
-    DEBUG_PRINTLN("No new NEMA received");
+    //DEBUG_PRINTLN("No new NEMA received");
 #ifdef GPSECHO
     char c = GPS.read();
     if(c)
@@ -150,10 +150,10 @@ void readGPS() {
     } else {
       DEBUG_PRINTLN("Could not parse new NMEA");            
     }
+    //debug print NMEA
+    DEBUG_PRINT("NMEA: ");
+    DEBUG_PRINTLN(GPS.lastNMEA());
   }
-  //debug print NMEA
-  DEBUG_PRINT("NMEA: ");
-  DEBUG_PRINTLN(GPS.lastNMEA());
 }
 
 void updateGPS() { //https://learn.adafruit.com/adafruit-ultimate-gps?view=all //FIX LED flashes every second until it gets a fix

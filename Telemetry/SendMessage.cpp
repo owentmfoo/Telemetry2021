@@ -6,7 +6,7 @@
 #include "StatusMsg.hpp"
 #include "src/CANApi/CanApiv03.hpp"
 
-//#define LOG_TO_SERIAL //Now a copy of SD stream and radio stream will be logged to serial output.
+#define LOG_TO_SERIAL //Now a copy of SD stream and radio stream will be logged to serial output.
 
 //buffer structure: ID0 ID1 DLC D[1]...D[DLC] CRC0 CRC1
 uint8_t byte_buffer[13]; // For CAN message in byte format to be transmitted (includes crc). 13 is the max size = 2+1+dlc+2
@@ -18,7 +18,7 @@ extern File dataFile;
 
 void setupSending()
 {
-  Serial.begin(230400);
+  //Serial.begin(230400);
   XBeeSerial.begin(115200);
 }
 
