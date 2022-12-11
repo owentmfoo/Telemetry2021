@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 #include "src/CANApi/CanApiv03.hpp"
 
-#define SD_SS 53 //was 12 or 53
+#define SD_SS 12 //was 12 or 53
 #define CONFIG_FILENAME "config.txt"
 
 conf config;
