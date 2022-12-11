@@ -17,6 +17,11 @@ CANHelper::CanMsgHandler CANHandler(MCP_SS);
 extern conf config;
 extern File dataFile;
 
+#define canTestMsg
+#ifdef canTestMsg
+CANHelper::Messages::Telemetry::_SystemStatusMessages canTest; //synthetic CAN test
+#endif
+
 void setup() { //dont forget to change bitrate to 50KBPS
   Serial.begin(230400);
   setupSD(); //must be done before sensor inputs because GPS needs this
@@ -32,6 +37,11 @@ void setup() { //dont forget to change bitrate to 50KBPS
 
   setPowerStatus(STAT_GOOD);  // Position 0 is power. Send status that setup is happening.
   updateStatus();
+
+  //CAN test test data
+#ifdef canTestMsg
+  canTest.data.Power = 24;
+#endif
 
   DEBUG_PRINTLN("Setup complete");
 }
@@ -67,6 +77,10 @@ void loop() {
     updateStatus();
   }
 
+#ifdef canTestMsg
+  CANHandler.send(canTest);
+#endif
+
   //Serial.println("Reading...");
   //CANHandler.read();
 
@@ -90,6 +104,12 @@ void CANHelper::Messages::processAll(CANHelper::Messages::CANMsg& msg)
     sysStatus.data[pos] = val;
 }*/
 
+void CANHelper::Messages::processMessage(CANHelper::Messages::DriverControls::_SpeedValCurrVal& msg) {
+  Serial.print("Set Current: ");
+  Serial.print(msg.data.DriverSetCurrent);
+  Serial.print("| Set Speed: ");
+  Serial.println(msg.data.DriverSetSpeed);
+}
 void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_SystemStatusMessages& msg) {}
 void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_TimeAndFix& msg) {}
 void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_SpeedAndAngle& msg) {}
