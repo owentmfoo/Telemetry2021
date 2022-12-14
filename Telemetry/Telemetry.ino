@@ -109,6 +109,7 @@ void CANHelper::Messages::processMessage(CANHelper::Messages::DriverControls::_S
   Serial.print(msg.data.DriverSetCurrent);
   Serial.print("| Set Speed: ");
   Serial.println(msg.data.DriverSetSpeed);
+  CANHandler.send(msg); //just reflecting data to confirm message was received
 }
 void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_SystemStatusMessages& msg) {}
 void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_TimeAndFix& msg) {}
