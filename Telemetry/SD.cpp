@@ -112,7 +112,8 @@ void startSDLog() {
                 DEBUG_PRINTLN(filename);
                 // Log our current configuration in some form
                 //dataFile.println("Logging to file");
-                dataFile.println("ESC ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1");
+                //dataFile.println("ESC ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1");
+                dataFile.println("ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1 ESC"); //moving marker to the end to simplify receiver code
                 dataFile.println("");
                 //dataFile.flush();
                 //updateStatus(3, 100+i);   // Config file opened with i=i

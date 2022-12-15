@@ -73,7 +73,7 @@ void sendMessage(CANHelper::Messages::CANMsg& msg) {
     //Serial.println(msg.metadata.dlc);
 
     // Escape character delimter to spot the data
-    out_byte(0x7E);
+    //out_byte(0x7E); //moved to end of frame
     
     // Split CAN ID into 2 bytes in order to .write()
     uint8_t can_id_b0 = (msg.metadata.id >> 8) & 0xFF;   // Remember, 11 bit CAN ID so 2047 is the max (0x7FF)
@@ -101,6 +101,9 @@ void sendMessage(CANHelper::Messages::CANMsg& msg) {
     for(int i = 0; i < byte_buffer[2] + 5; i++) { //byte_buffer[2] is the dlc
       out_byte(byte_buffer[i]);
     }
+
+    out_byte(0x7E); //End Of Frame marker
+
     //Add LF characters at end of lines for SD and Serial streams
     dataFile.println();
 #ifdef LOG_TO_SERIAL
