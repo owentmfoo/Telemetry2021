@@ -1,33 +1,28 @@
 from datetime import datetime
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
 import sys, getopt
+from os.path import exists as fileExists
 import struct
 import time
 
-inputType = ''
-outputType = ''
-configFile = ''
-try:
-    opts, args = getopt.getopt(sys.argv[1:],"c:i:it:o:ot:",["configTable=", "input=", "inputType=", "output=", "outputType=", "headerStream="]) #from https://www.tutorialspoint.com/python/python_command_line_arguments.htm.
-except:
-    print('Translator.py -i <input data> -o <output file> -c <config table file> -h <header file>')
-    sys.exit(2)
-for opt, arg in opts:
-    #print(arg)
-    if opt in ("-i", "--inputFile"):
-        inputfile = arg
-    elif opt in ("-o", "--outputFile"):
-        outputfile = arg
-    elif opt in ("-c", "--configTable"):
-        configFile = arg
-    elif opt in ("-h", "--headerStream"):
-        headerFile = arg
-print("Config file: " + configFile)
-
+configFile = './CANConfig.xslx'
+xlsxOutputFile = '' #set equal to '' to switch off xslx output. Same for influx credentials and outputting to influx database
+influxCredentials = ''
 
 #STORE DATA REGION
-def toInflux(msg: str):
+storeFunctionList: list[str] = []
+def storeData(msg: str):
     msgItem, msgSource, msgBody = __translateMsg(msg) #this implicitly updates timestamp. I.e always run this first
+    for i in storeFunctionList:
+        i(msgItem, msgSource, msgBody)
+
+#INFLUX REGION
+#init influx
+if not (influxCredentials == ''): #if '', disable influx output
+    
+    storeFunctionList.append('toInflux') #add function name to list.
+#influx store function
+def toInflux(msgItem: str, msgSource: str, msgBody: dict):
     body = [{
                 "measurement": msgSource, #Should
                 #"": msgItem,
@@ -35,10 +30,32 @@ def toInflux(msg: str):
                 "fields": msgBody
             }]
 
-
-def toXlsx(msg: str):
-    msgItem, msgSource, msgData = __translateMsg(msg) #this implicitly updates timestamp. I.e always run this first
+#XLSX REGION
+#init excel output
+XlsxOutWorkbook = ''
+XlsxOutWorkSheet = ''
+XlsxOutRowPointer = 2 #skip first row as that is for column labels
+if not (xlsxOutputFile == ''): #if '', disable xlsx output
+    if fileExists(xlsxOutputFile):
+        XlsxOutWorkbook = load_workbook(xlsxOutputFile, read_only=False)
+        if 'Translated Messages' in XlsxOutWorkbook.worksheets:
+            XlsxOutWorkSheet = XlsxOutWorkbook['Translated Messages']
+            XlsxOutRowPointer = XlsxOutWorkSheet.max_row + 1 #leave gap in between sessions. Just to make reader aware that more than one session continued with the same file
+    else:
+        XlsxOutWorkbook = Workbook() #creates new workbook
+        XlsxOutWorkSheet = XlsxOutWorkbook.create_sheet(title='Translated Messages')
     
+    #If new log, add columns labels and excel filters
+    if XlsxOutRowPointer == 2: #if true, then this is a new log
+        for i, label in enumerate(['Source', 'Item', 'Data...']): #Column labels
+            XlsxOutWorkSheet.cell(column=i + 1, row=1, value=label) 
+        XlsxOutWorkSheet.auto_filter.ref = 'A1:' + str(XlsxOutWorkSheet.max_row) + '2'# Add filters to first two columns (Source and Item)
+    
+    storeFunctionList.append('toXlsx') #add function name to list.
+#xlsx store function
+def toXlsx(msgItem: str, msgSource: str, msgBody: dict):
+    print()
+        
 
 
 #TIME REGION
@@ -50,7 +67,7 @@ def __getTime() -> datetime:
 
 #CONFIG INIT REGION
 #get config from excel config workbook. Check 'CAN data' sheet exists
-config = load_workbook(configFile, read_only=True)
+config = load_workbook(configFile, read_only=True, keep_vba=True) #Config has VBA macros
 if not 'CAN data' in config.worksheets: #check CAN data worksheet exists
     print("Missing CAN data worksheet in workbook. Is the config file correct?")
     sys.exit(1)
@@ -69,7 +86,7 @@ for column in configSheet.columns:
     columnIterator = columnIterator + 1
 
 #TRANSLATE MESSAGE REGION
-def __translateMsg(msg: str):
+def __translateMsg(msg: str) -> tuple[str, str, dict]:
     msgBytes = msg.split(' ') #Format: ESC ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1
 
     #do a lookup in spreadsheet using can id to work out can message type
@@ -111,3 +128,21 @@ def __getConfigColumn(columnLabel: str) -> int: #used to make sure reordering of
     else:
         print("Column '" + columnLabel + "' missing in 'CAN data' worksheet in config")
         sys.exit(2)
+
+
+#try:
+#    opts, args = getopt.getopt(sys.argv[1:],"c:i:it:o:ot:",["configTable=", "input=", "inputType=", "output=", "outputType=", "headerStream="]) #from https://www.tutorialspoint.com/python/python_command_line_arguments.htm.
+#except:
+#    print('Translator.py -i <input data> -o <output file> -c <config table file> -h <header file>')
+#    sys.exit(2)
+#for opt, arg in opts:
+#    #print(arg)
+#    if opt in ("-i", "--inputFile"):
+#        inputfile = arg
+#    elif opt in ("-o", "--outputFile"):
+#        outputfile = arg
+#    elif opt in ("-c", "--configTable"):
+#        configFile = arg
+#    elif opt in ("-h", "--headerStream"):
+#        headerFile = arg
+#print("Config file: " + configFile)
