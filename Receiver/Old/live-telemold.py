@@ -1,6 +1,6 @@
 import serial
 import time
-import telemfunctions as tf
+import telemfunctionsold as tf
 
 SERIALPORT = '/dev/ttyUSB0' # Raspberry Pi
 # SERIALPORT = '/dev/cu.usbmodem14101' # macOS

@@ -1,62 +1,19 @@
+import sys
+
+if __name__ == '__main__':  # Warn if trying to run this as a script
+    print("\n**********************************************")
+    print("   This is not meant to be run as a main script")
+    print("   Run log-to-data.py or live-telem.py instead")
+    print("**********************************************\n")
+    sys.exit(4)
+
 from datetime import datetime
-from openpyxl import load_workbook, Workbook
-import sys, getopt
-from os.path import exists as fileExists
+from openpyxl import load_workbook
 import struct
 import time
+from crccheck.crc import Crc16Modbus
 
-configFile = './CANConfig.xslx'
-xlsxOutputFile = '' #set equal to '' to switch off xslx output. Same for influx credentials and outputting to influx database
-influxCredentials = ''
-
-#STORE DATA REGION
-storeFunctionList: list[str] = []
-def storeData(msg: str):
-    msgItem, msgSource, msgBody = __translateMsg(msg) #this implicitly updates timestamp. I.e always run this first
-    for i in storeFunctionList:
-        i(msgItem, msgSource, msgBody)
-
-#INFLUX REGION
-#init influx
-if not (influxCredentials == ''): #if '', disable influx output
-    
-    storeFunctionList.append('toInflux') #add function name to list.
-#influx store function
-def toInflux(msgItem: str, msgSource: str, msgBody: dict):
-    body = [{
-                "measurement": msgSource, #Should
-                #"": msgItem,
-                "time": __getTime(),
-                "fields": msgBody
-            }]
-
-#XLSX REGION
-#init excel output
-XlsxOutWorkbook = ''
-XlsxOutWorkSheet = ''
-XlsxOutRowPointer = 2 #skip first row as that is for column labels
-if not (xlsxOutputFile == ''): #if '', disable xlsx output
-    if fileExists(xlsxOutputFile):
-        XlsxOutWorkbook = load_workbook(xlsxOutputFile, read_only=False)
-        if 'Translated Messages' in XlsxOutWorkbook.worksheets:
-            XlsxOutWorkSheet = XlsxOutWorkbook['Translated Messages']
-            XlsxOutRowPointer = XlsxOutWorkSheet.max_row + 1 #leave gap in between sessions. Just to make reader aware that more than one session continued with the same file
-    else:
-        XlsxOutWorkbook = Workbook() #creates new workbook
-        XlsxOutWorkSheet = XlsxOutWorkbook.create_sheet(title='Translated Messages')
-    
-    #If new log, add columns labels and excel filters
-    if XlsxOutRowPointer == 2: #if true, then this is a new log
-        for i, label in enumerate(['Source', 'Item', 'Data...']): #Column labels
-            XlsxOutWorkSheet.cell(column=i + 1, row=1, value=label) 
-        XlsxOutWorkSheet.auto_filter.ref = 'A1:' + str(XlsxOutWorkSheet.max_row) + '2'# Add filters to first two columns (Source and Item)
-    
-    storeFunctionList.append('toXlsx') #add function name to list.
-#xlsx store function
-def toXlsx(msgItem: str, msgSource: str, msgBody: dict):
-    print()
-        
-
+configFile: str = './CANConfig.xslx'
 
 #TIME REGION
 lastGPSTime = datetime.fromtimestamp(0)
@@ -86,11 +43,11 @@ for column in configSheet.columns:
     columnIterator = columnIterator + 1
 
 #TRANSLATE MESSAGE REGION
-def __translateMsg(msg: str) -> tuple[str, str, dict]:
-    msgBytes = msg.split(' ') #Format: ESC ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1
+def translateMsg(msgBytes: bytearray) -> tuple[str, str, dict, datetime, bool]: #Format: ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1 (NOTE: end of frame marker not included)
+    print("Translating -> " + msgBytes)
 
     #do a lookup in spreadsheet using can id to work out can message type
-    canId = int(msgBytes[1:3], base=16)
+    canId = int(msgBytes[0:2], base=16)
     configRow = 1
     while not (str(configSheet.cell(configRow, 1).value) == "END"):
         if configSheet.cell(configRow, __getConfigColumn("CAN_ID (dec)")).value == canId: #column 6 canId
@@ -99,7 +56,8 @@ def __translateMsg(msg: str) -> tuple[str, str, dict]:
     #Translate
     msgItem: str = configSheet.cell(configRow, __getConfigColumn("ItemCC")).value #use camel case formats to avoid issues with storing data
     msgSource: str = configSheet.cell(configRow, __getConfigColumn("SourceCC")).value
-    msgData = struct.unpack(configSheet.cell(configRow, __getConfigColumn("struct unpack code")).value, bytes.fromhex(''.join(str(element) for element in msgBytes[4:12])))
+    #msgData = struct.unpack(configSheet.cell(configRow, __getConfigColumn("struct unpack code")).value, bytes.fromhex(''.join(str(element) for element in msgBytes[3:12])))
+    msgData = struct.unpack(configSheet.cell(configRow, __getConfigColumn("struct unpack code")).value, msgBytes[3:11])
     msgBody: dict = {}
     dataIterator = 0
     for i in range(0, 8):
@@ -111,16 +69,20 @@ def __translateMsg(msg: str) -> tuple[str, str, dict]:
 
 
     #if GPS time and fix message, update time
-    if msgItem == "TimeAndFix":
+    if canId == 246: #can id for GPS Time and Fix message (hex: 0x0F6)
         lastGPSTime.hour = msgData[0]
         lastGPSTime.minute = msgData[1]
         lastGPSTime.second = msgData[2]
         lastGPSTime.day = msgData[3]
         lastGPSTime.month = msgData[4]
-        lastGPSTime.year = msgData[5]
+        lastGPSTime.year = 2000 + msgData[5] #msgData only contains last 2 digits of year so have to add 2000
         timeFetched = time.time() # update when data was last fetched
+    msgTime = __getTime() #get current time (according to GPS time, not system time)
 
-    return msgItem, msgSource, msgBody
+    #CRC check
+    msgCRCStatus = __checkCRC(msgBytes)
+
+    return msgItem, msgSource, msgBody, msgTime, msgCRCStatus
     
 def __getConfigColumn(columnLabel: str) -> int: #used to make sure reordering of columns in config spreadsheet does not cause errors in this script
     if columnLabel in configColumns:
@@ -129,20 +91,8 @@ def __getConfigColumn(columnLabel: str) -> int: #used to make sure reordering of
         print("Column '" + columnLabel + "' missing in 'CAN data' worksheet in config")
         sys.exit(2)
 
-
-#try:
-#    opts, args = getopt.getopt(sys.argv[1:],"c:i:it:o:ot:",["configTable=", "input=", "inputType=", "output=", "outputType=", "headerStream="]) #from https://www.tutorialspoint.com/python/python_command_line_arguments.htm.
-#except:
-#    print('Translator.py -i <input data> -o <output file> -c <config table file> -h <header file>')
-#    sys.exit(2)
-#for opt, arg in opts:
-#    #print(arg)
-#    if opt in ("-i", "--inputFile"):
-#        inputfile = arg
-#    elif opt in ("-o", "--outputFile"):
-#        outputfile = arg
-#    elif opt in ("-c", "--configTable"):
-#        configFile = arg
-#    elif opt in ("-h", "--headerStream"):
-#        headerFile = arg
-#print("Config file: " + configFile)
+def __checkCRC(msgBytes: bytearray) -> bool:
+    data = msgBytes[0:-2]      # All except the last two
+    crc_rcvd = int.from_bytes(msgBytes[-2:], "big")  # Convert received CRC code to int
+    crc_calc = Crc16Modbus.calc(data)
+    return crc_calc == crc_rcvd
