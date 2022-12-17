@@ -13,6 +13,7 @@ from os.path import exists as fileExists
 import struct
 import time
 from crccheck.crc import Crc16Modbus
+from binascii import hexlify
 
 #configFile: str = './CANConfig.xslx' #raspberrypi
 configFile: str = '../../CANTranslator/config/CANBusData(saved201022)Modified.xlsm' #testing with windows
@@ -22,7 +23,7 @@ lastGPSTime: datetime = datetime(1970, 1, 1, 3, 0, 0) #Excel does not support ti
 timeFetched = time.time() #Time since time variables were last updated in seconds #round(time.time() * 1000)
 def __getTime() -> datetime:
     #print(lastGPSTime.timestamp() + (time.time() - timeFetched))
-    currentTime = lastGPSTime + timedelta(milliseconds = (time.time() - timeFetched) * 1000)
+    currentTime = lastGPSTime + timedelta(seconds = (time.time() - timeFetched))
     #currentTime = datetime.fromtimestamp(lastGPSTime.timestamp() + (time.time() - timeFetched))
     return currentTime
 
@@ -46,7 +47,7 @@ print([cell.value for cell in configSheet[1][0:configSheet.max_column]])
 for columnIterator in range(1, configSheet.max_column + 1): #cell() is 1 indexed (i.e. cell A1 is fetched with (1,1) coords)
     if configSheet.cell(row=1, column=columnIterator).value is None: #If type is 'NoneType', ignore column
         continue
-    print("Column: " + configSheet.cell(row=1, column=columnIterator).value)
+    #print("Column: " + configSheet.cell(row=1, column=columnIterator).value)
     if configSheet.cell(row=1, column=columnIterator).value in configColumns: #check for duplicates
         print("Column labels must be unique in 'CAN Data' worksheet in config")
         sys.exit(3)
@@ -57,17 +58,32 @@ for columnIterator in range(1, configSheet.max_column + 1): #cell() is 1 indexed
 def translateMsg(msgBytes: bytearray) -> tuple[str, str, dict, datetime, bool]: #Format: ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1 (NOTE that end of frame marker is not included)
     print("Translating -> " + str(msgBytes))
 
+    #get time
+    msgTime = __getTime() #get current time (according to GPS time, not system time)
+
+    #CRC check
+    msgCRCStatus = __checkCRC(msgBytes)
+    if not msgCRCStatus:
+        print("CRC FAILED at " + msgTime.strftime("%Y-%m-%d %H:%M:%S"))
+        return "CRCFail", "", {"Data": hexlify(msgBytes)}, msgTime, False
+
     #do a lookup in spreadsheet using can id to work out can message type
     canId = msgBytes[0] << 8 | msgBytes[1] #int(''.join(hexNumber for hexNumber in msgBytes[0:2]), base=16)
     configRow = 1
+    configFound = False
     while not (str(configSheet.cell(configRow, 1).value) == "END"):
-        print(configSheet.cell(configRow, __getConfigColumn("CAN_ID (dec)")).value)
+        #print(configSheet.cell(configRow, __getConfigColumn("CAN_ID (dec)")).value)
         if configSheet.cell(configRow, __getConfigColumn("CAN_ID (dec)")).value == canId:
+            configFound = True
             break
         configRow += 1
-    print(canId)
+    if not configFound:
+        print("Could not find config row for id: " + str(canId))
+        return "Unknown CanID", "", {"Data": hexlify(msgBytes)}, msgTime, msgCRCStatus #probably corrupted message if this runs
+    #print(canId)
     print("Config Row: ", end='')
     print([cell.value for cell in configSheet[configRow][0:configSheet.max_column]])
+    print('\n\n')
     
     #Translate
     msgItem: str = configSheet.cell(configRow, __getConfigColumn("ItemCC")).value #use camel case formats to avoid issues with storing data
@@ -87,6 +103,8 @@ def translateMsg(msgBytes: bytearray) -> tuple[str, str, dict, datetime, bool]: 
     #if GPS time and fix message, update time
     if canId == 246: #can id for GPS Time and Fix message (hex: 0x0F6)
         print("Updating GPS time...")
+        global lastGPSTime
+        global timeFetched
         lastGPSTime = datetime( \
             hour = msgData[0], \
             minute = msgData[1], \
@@ -96,10 +114,6 @@ def translateMsg(msgBytes: bytearray) -> tuple[str, str, dict, datetime, bool]: 
             year = 2000 + msgData[5] ) #msgData only contains last 2 digits of year so have to add 2000
         timeFetched = time.time() # update when data was last fetched
         print("GPS time is now: " + lastGPSTime.strftime("%Y-%m-%d %H:%M:%S"))
-    msgTime = __getTime() #get current time (according to GPS time, not system time)
-
-    #CRC check
-    msgCRCStatus = __checkCRC(msgBytes)
 
     return msgItem, msgSource, msgBody, msgTime, msgCRCStatus
     
