@@ -24,6 +24,7 @@ CANHelper::Messages::Telemetry::_SystemStatusMessages canTest; //synthetic CAN t
 
 void setup() { //dont forget to change bitrate to 50KBPS
   Serial.begin(230400);
+  DEBUG_PRINTLN("Setting up");
   setupSD(); //must be done before sensor inputs because GPS needs this
   setupSensorInputs();
   startSDLog(); //must be done after sensor inputs because this needs GPS
