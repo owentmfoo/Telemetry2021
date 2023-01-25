@@ -96,9 +96,9 @@ void startSDLog() {
     filename[5] = DD%10 + '0';
     
     filename[8] = '.';
-    filename[9] = 't';
-    filename[10] = 'x';
-    filename[11] = 't';
+    filename[9] = 'b'; //t
+    filename[10] = 'i'; //x
+    filename[11] = 'n'; //t
     filename[12] = '\0';
 
     // If we've already recorded today, +1 to trailing number
@@ -113,8 +113,10 @@ void startSDLog() {
                 // Log our current configuration in some form
                 //dataFile.println("Logging to file");
                 //dataFile.println("ESC ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1");
-                dataFile.println("ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1 ESC"); //moving marker to the end to simplify receiver code
-                dataFile.println("");
+                
+                //dataFile.println("ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1 ESC"); //moving marker to the end to simplify receiver code
+                //dataFile.println("");
+                
                 //dataFile.flush();
                 //updateStatus(3, 100+i);   // Config file opened with i=i
                 setLoadedConfigStatus(100 + i);

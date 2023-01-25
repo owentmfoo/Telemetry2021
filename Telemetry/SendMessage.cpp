@@ -33,8 +33,9 @@ void out_byte(uint8_t b) {
     Serial.print(" ");
 #endif
     if(dataFile) {
-      dataFile.print(b, HEX);
-      dataFile.print(" ");
+      dataFile.write(b);
+      //dataFile.print(b, HEX);
+      //dataFile.print(" ");
     }
     /*if (dataFile) {
         dataFile.print(b, HEX);
@@ -104,8 +105,8 @@ void sendMessage(CANHelper::Messages::CANMsg& msg) {
 
     out_byte(0x7E); //End Of Frame marker
 
-    //Add LF characters at end of lines for SD and Serial streams
-    dataFile.println();
+    //Add LF characters at end of lines for SD and Serial streams. Dont do this. Using binary now
+    //dataFile.println();
 #ifdef LOG_TO_SERIAL
     Serial.println();
 #endif

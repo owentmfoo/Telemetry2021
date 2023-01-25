@@ -29,24 +29,38 @@ if hexFile == '':
     print("No hex file specified. Exiting.")
     sys.exit(0)
 
-hex = open(hexFile)
-hex.readline()
-hex.readline() #Skip first 2 lines as they are not data
-for line in hex.readlines():
-    if not keepLooping:
-        break
-    #framebuffer = "".join(line.split()[:-1]).strip()
-    framebuffer = line.split(" ")[:-1] #removes ESC at end of each frame
-    print(framebuffer)
-    data: bytearray = bytearray()
-    for i in framebuffer:
-        if len(i) == 1:
-            data.extend(bytes.fromhex('0' + i))
+EndOfFrameMarker = b'\x7E'
+with open(hexFile, mode='rb') as file:
+    inputByte = file.read(1)
+    frameBuffer: bytearray = bytearray()
+    while inputByte:
+        if not keepLooping:
+            break
+        if inputByte == EndOfFrameMarker:
+            storeData(frameBuffer)
+            frameBuffer = bytearray() #reset buffer
         else:
-            data.extend(bytes.fromhex(i))
+            frameBuffer.extend(inputByte)
+        inputByte = file.read(1)
 
-    print(''.join('{:02x}'.format(x) for x in data))
-    storeData(data)
+# hex = open(hexFile)
+# hex.readline()
+# hex.readline() #Skip first 2 lines as they are not data
+# for line in hex.readlines():
+#     if not keepLooping:
+#         break
+#     #framebuffer = "".join(line.split()[:-1]).strip()
+#     framebuffer = line.split(" ")[:-1] #removes ESC at end of each frame
+#     print(framebuffer)
+#     data: bytearray = bytearray()
+#     for i in framebuffer:
+#         if len(i) == 1:
+#             data.extend(bytes.fromhex('0' + i))
+#         else:
+#             data.extend(bytes.fromhex(i))
+
+#     print(''.join('{:02x}'.format(x) for x in data))
+#     storeData(data)
 
     # if len(framebuffer) % 2 == 1:
     #     temp = framebuffer[len(framebuffer) - 1]
