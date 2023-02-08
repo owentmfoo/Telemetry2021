@@ -15,7 +15,7 @@ from typing import NamedTuple
 from influxdb import InfluxDBClient
 
 #TELEMETRY STORE CONFIG
-xlsxOutputFile: str = './CANTelemOutputDemo2.xlsx' #set equal to '' to switch off xslx output
+xlsxOutputFile: str = './CANTelemOutputDemo3.xlsx' #set equal to '' to switch off xslx output
 class influxCredentials(NamedTuple):
     # influx configuration - edit these
     username: str  = "admin"
@@ -68,6 +68,7 @@ def __toXlsx(msgItem: str, msgSource: str, msgBody: dict, msgTime: datetime, msg
     columnPointer: int = 5
     for dataLabel, value in msgBody.items():
         XlsxOutWorkSheet.cell(column=columnPointer, row=XlsxOutRowPointer, value=dataLabel)
+        #print("DEBUG: " + dataLabel + " : " + str(value))
         XlsxOutWorkSheet.cell(column=columnPointer + 1, row=XlsxOutRowPointer, value=value)
         columnPointer += 2
     

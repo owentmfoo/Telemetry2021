@@ -16,6 +16,7 @@
 CANHelper::CanMsgHandler CANHandler(MCP_SS);
 extern conf config;
 extern File dataFile;
+extern CANHelper::Messages::Telemetry::_TimeAndFix time;
 
 #define canTestMsg
 #ifdef canTestMsg
@@ -29,6 +30,7 @@ void setup() { //dont forget to change bitrate to 50KBPS
   setupSensorInputs();
   startSDLog(); //must be done after sensor inputs because this needs GPS
   setupSending();
+  sendMessage(time); //To synchronise receiver. This should be the first message in SD log and radio
 
   //mcp2515.reset(); //Here to remind myself to add to library
 

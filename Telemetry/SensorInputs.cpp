@@ -36,6 +36,7 @@ void gps2canMsgs() {
   // Time + fix
   updateTimeCANMsg();
   sendMessage(time);
+  //sendMessage(time);
 
   // Speed + angle
   gpsData.speedAngle.data.GpsSpeed = GPS.speed;
@@ -92,6 +93,11 @@ void setupSensorInputs() {
   //GPS.sendCommand(PGCMD_ANTENNA);
   //GPSSerial.println(PMTK_Q_RELEASE);
 
+  //fix to stop excel complaining about illegal characters when GPS fix not yet aqcuired. Ignore this. GPS fix messages are no longer sent until fix is found
+  //gpsData.latitude.data.GpsLat = 'U'; //U = Unknown. Will become either E or W when GPS gets location
+  //gpsData.longitude.data.GpsLon = 'U'; //Will become either N or S when GPS gets location
+  //DEBUG_PRINTLN("Set GpsLat and GpsLon to U to stop excel complaining");
+
   /* Check current date and time from GPS */ // - this could do with a whole load of squishing
   DEBUG_PRINTLN("Checking GPS...");
   uint32_t timer = millis();
@@ -110,12 +116,12 @@ void setupSensorInputs() {
                   DEBUG_PRINTLN(">>> Time acquired <<<");
                   setGPSObtainedStatus(STAT_GOOD);  // GPS time acquired
                   //print_datetimefix();
-                  updateTimeCANMsg();
+                  updateTimeCANMsg(); //Moved to Telemetry.ino as this runs before logging and radio are initialised.
 
                   break;
               }
               else {
-                  DEBUG_PRINTLN("Time not yet acquired:");
+                  DEBUG_PRINTLN("Time not yet acquired");
                   //print_datetimefix();
               }
           }
@@ -123,12 +129,13 @@ void setupSensorInputs() {
               DEBUG_PRINTLN("parsing failed");
           }
       }
-      uint32_t timerCheck = millis();
+      //Telemetry should not start until GPS time and fix acquired. This is to avoid time desync issues between this and receiver (grafana) and make sure log files are properly named
+      /*uint32_t timerCheck = millis();
       if (timerCheck - timer > config.time_fix) {
           DEBUG_PRINTLN("timeout for time acquisition exceeded.");
           DEBUG_PRINT("GPS time acquire timer check: "); DEBUG_PRINTLN(timerCheck);
           break;
-      }
+      }*/
   }
 }
 
@@ -164,9 +171,9 @@ void updateGPS() { //https://learn.adafruit.com/adafruit-ultimate-gps?view=all /
     //char c = GPS.read(); //check why reading more frequently than logging. (reads every loop but only logs after a certain time interval). Not sure if necessary
     //if (millis() - timer > config.gps_update) { //handled in calling code (Telemetry.ino)
         //timer = millis(); // reset the timer
-        //if(GPS.fix) {
+        if(GPS.fix) {
           gps2canMsgs();
-        //}
+        }
     //}
 }
 
