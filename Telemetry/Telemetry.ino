@@ -114,7 +114,7 @@ void updateStatusLEDs(uint8_t statusCode)
   digitalWrite(35, (statusCode & 4) ? HIGH : LOW);
   digitalWrite(37, (statusCode & 2) ? HIGH : LOW);
   digitalWrite(39, (statusCode & 1) ? HIGH : LOW);
-  delay(1000);
+  //delay(1000);
 }
 
 //Just relays all CAN messages over radio
