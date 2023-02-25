@@ -32,7 +32,7 @@ def __getTime() -> datetime:
 if not fileExists(configFile):
     print("Config file " + configFile + " does not exist")
     sys.exit(5)
-config = load_workbook(configFile, read_only=True, keep_vba=True, data_only=True) #Config has VBA macros. Also, data_only=True only works if formulae were evaluated. This is fine since excel does this and openpyxl does not modify config
+config = load_workbook(configFile, keep_vba=True, data_only=True) #Config has VBA macros. Also, data_only=True only works if formulae were evaluated. This is fine since excel does this and openpyxl does not modify config
 if not 'CAN Data' in config.sheetnames: #check CAN data worksheet exists
     print("Missing 'CAN Data' worksheet in workbook. Is the config file correct?")
     print("Worksheets available: ", end='')

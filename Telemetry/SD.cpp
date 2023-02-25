@@ -1,3 +1,4 @@
+#include "Arduino.h"
 #include "SD.hpp"
 #include "SerialDebugMacros.hpp"
 #include <SD.h>

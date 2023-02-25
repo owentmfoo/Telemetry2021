@@ -37,7 +37,7 @@ def storeData(msg: bytearray) -> None:
 #influx store function
 def __toInflux(msgItem: str, msgSource: str, msgBody: dict, msgTime: datetime, msgCRCStatus: bool) -> None:
     if not msgCRCStatus: #CRC failed, message was corrupted. Do not add to database
-        print("CRC FAILED for " + msgSource + "/" + msgItem + " at " + msgTime.strftime("%Y-%m-%d %H:%M:%S"))
+        #print("CRC FAILED for " + msgSource + "/" + msgItem + " at " + msgTime.strftime("%Y-%m-%d %H:%M:%S"))
         return
     global influxClient
     body = [{
