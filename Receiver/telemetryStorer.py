@@ -7,7 +7,7 @@ if __name__ == '__main__':  # Warn if trying to run this as a script
     print("**********************************************\n")
     sys.exit(4)
 
-from telemetryParser import translateMsg
+from telemetryParser2 import translateMsg
 from datetime import datetime
 from openpyxl import load_workbook, Workbook
 from os.path import exists as fileExists
@@ -15,7 +15,7 @@ from typing import NamedTuple
 from influxdb import InfluxDBClient
 
 #TELEMETRY STORE CONFIG
-xlsxOutputFile: str = './CANTelemOutputDemo3.xlsx' #set equal to '' to switch off xslx output
+xlsxOutputFile: str = './CANTelemOutputParser2Test.xlsx' #set equal to '' to switch off xslx output
 class influxCredentials(NamedTuple):
     # influx configuration - edit these
     username: str  = "admin"

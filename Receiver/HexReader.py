@@ -19,7 +19,7 @@ hexFile = ''
 try:
     opts, args = getopt.getopt(sys.argv[1:],"h:",["hexFile="]) #from https://www.tutorialspoint.com/python/python_command_line_arguments.htm.
 except:
-    print('Translator.py -h <hexFile>')
+    print('HexReader.py -h <hexFile>')
     sys.exit(2)
 for opt, arg in opts:
     if opt in ("-h", "--hex"):

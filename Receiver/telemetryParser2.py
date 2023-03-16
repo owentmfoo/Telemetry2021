@@ -14,6 +14,7 @@ import struct
 import time
 from crccheck.crc import Crc16Modbus
 from binascii import hexlify
+from csv import DictReader as csvAsDictReader
 
 #configFile: str = './CANConfig.xslx' #raspberrypi
 configFile: str = '../../CANTranslator/config/CANBusData(saved201022)Modified.xlsm' #testing with windows
@@ -24,7 +25,6 @@ timeFetched = time.time() #Time since time variables were last updated in second
 def __getTime() -> datetime:
     #print(lastGPSTime.timestamp() + (time.time() - timeFetched))
     currentTime = lastGPSTime + timedelta(seconds = (time.time() - timeFetched))
-    #currentTime = datetime.fromtimestamp(lastGPSTime.timestamp() + (time.time() - timeFetched))
     return currentTime
 
 #CONFIG INIT REGION
@@ -32,27 +32,41 @@ def __getTime() -> datetime:
 if not fileExists(configFile):
     print("Config file " + configFile + " does not exist")
     sys.exit(5)
-config = load_workbook(configFile, keep_vba=True, data_only=True) #Config has VBA macros. Also, data_only=True only works if formulae were evaluated. This is fine since excel does this and openpyxl does not modify config
-if not 'CAN Data' in config.sheetnames: #check CAN data worksheet exists
+#configData = open(configFile)
+
+#with open(configFile) as configData:
+config: dict[int, dict] = dict()
+#with load_workbook(configFile, read_only=True, keep_vba=True, data_only=True) as configBook:
+configBook = load_workbook(configFile, read_only=True, keep_vba=True, data_only=True) #Config has VBA macros. Also, data_only=True only works if formulae were evaluated. This is fine since excel does this and openpyxl does not modify config
+if not 'CAN Data' in configBook.sheetnames: #check CAN data worksheet exists
     print("Missing 'CAN Data' worksheet in workbook. Is the config file correct?")
     print("Worksheets available: ", end='')
-    print(config.sheetnames)
+    print(configBook.sheetnames)
     sys.exit(1)
-configSheet = config['CAN Data']
+configSheet = configBook['CAN Data']
+#c = csvAsDictReader(configData)
+configColumns: dict[str, int] = dict()
+for columnIterator in range(1, configSheet.max_column + 1):
+    configColumns[configSheet.cell(row=1, column=columnIterator).value] = columnIterator
+for rowIndex in range(2, configSheet.max_row + 1):
+    if configSheet.cell(row=rowIndex, column=1).value == "END":
+        break
+    rowAsDict = dict()
+    for columnName in configColumns:
+        rowAsDict[columnName] = configSheet.cell(row=rowIndex, column=configColumns[columnName]).value
+    config[configSheet.cell(row=rowIndex, column=configColumns["CAN_ID (dec)"]).value] = rowAsDict
+configBook.close()
 
-#map column labels to column indices
-configColumns = dict()
-print("Getting column labels")
-print([cell.value for cell in configSheet[1][0:configSheet.max_column]])
-for columnIterator in range(1, configSheet.max_column + 1): #cell() is 1 indexed (i.e. cell A1 is fetched with (1,1) coords)
-    if configSheet.cell(row=1, column=columnIterator).value is None: #If type is 'NoneType', ignore column
-        continue
-    #print("Column: " + configSheet.cell(row=1, column=columnIterator).value)
-    if configSheet.cell(row=1, column=columnIterator).value in configColumns: #check for duplicates
-        print("Column labels must be unique in 'CAN Data' worksheet in config")
-        sys.exit(3)
-    configColumns.update({configSheet.cell(row=1, column=columnIterator).value: columnIterator})
-    columnIterator = columnIterator + 1
+rowForCurrentMessage = dict()
+def __fromConfig(dictKey):
+    #row = config.get(canId)
+    if dictKey in rowForCurrentMessage:
+        return rowForCurrentMessage[dictKey]
+    else:
+        print("Column '" + dictKey + "' missing in 'CAN Data' worksheet in config")
+        sys.exit(2)
+
+print(config)
 
 #TRANSLATE MESSAGE REGION
 def translateMsg(msgBytes: bytearray) -> tuple[str, str, dict, datetime, bool]: #Format: ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1 (NOTE that end of frame marker is not included)
@@ -68,44 +82,22 @@ def translateMsg(msgBytes: bytearray) -> tuple[str, str, dict, datetime, bool]: 
         return "CRCFail", "", {"Data": hexlify(msgBytes)}, msgTime, False
 
     #do a lookup in spreadsheet using can id to work out can message type
-    canId = msgBytes[0] << 8 | msgBytes[1] #int(''.join(hexNumber for hexNumber in msgBytes[0:2]), base=16)
-    configRow = 1
-    # for r in config.iter_rows():
-    #     if r[__getConfigColumn("CAN_ID (dec)")] == canId:
-    #         configRow = r
-    #         break
-    #     if r[0] == "END":
-    #         print("Could not find config row for id: " + str(canId))
-    #         return "Unknown CanID", "", {"Data": hexlify(msgBytes)}, msgTime, msgCRCStatus #If this runs, the config being used here is out of date
-        
-    while not (str(configSheet.cell(configRow, 1).value) == "END"):
-        #print(configSheet.cell(configRow, __getConfigColumn("CAN_ID (dec)")).value)
-        if configSheet.cell(configRow, __getConfigColumn("CAN_ID (dec)")).value == canId:
-            configFound = True
-            break
-        configRow += 1
-    if not configFound:
-        print("Could not find config row for id: " + str(canId))
-        return "Unknown CanID", "", {"Data": hexlify(msgBytes)}, msgTime, msgCRCStatus #If this runs, the config being used here is out of date
-    #print(canId)
-    print("Config Row: ", end='')
-    print([cell.value for cell in configSheet[configRow][0:configSheet.max_column]])
-    print('\n\n')
+    canId = msgBytes[0] << 8 | msgBytes[1]
+    global rowForCurrentMessage
+    rowForCurrentMessage = config[canId]
     
     #Translate
-    msgItem: str = configSheet.cell(configRow, __getConfigColumn("ItemCC")).value #use camel case formats to avoid issues with storing data
-    msgSource: str = configSheet.cell(configRow, __getConfigColumn("SourceCC")).value
-    #msgData = struct.unpack(configSheet.cell(configRow, __getConfigColumn("struct unpack code")).value, bytes.fromhex(''.join(str(element) for element in msgBytes[3:12])))
-    msgDLC = configSheet.cell(configRow, __getConfigColumn("DLC")).value
-    msgData = struct.unpack(configSheet.cell(configRow, __getConfigColumn("struct unpack code")).value, msgBytes[3:(3 + msgDLC)])
+    msgItem: str = __fromConfig("ItemCC")
+    msgSource: str = __fromConfig("SourceCC")
+    msgDLC = __fromConfig("DLC")
+    msgData = struct.unpack(__fromConfig("struct unpack code"), msgBytes[3:(3 + msgDLC)])
     msgBody: dict = {}
     dataIterator = 0
     for i in range(0, 8):
-        fieldName = configSheet.cell(configRow, __getConfigColumn("BYTE_" + str(i) + "CC")).value
-        if not (fieldName == '-'): #if byte labelled '-', then is part of a value that spans multiple bytes or is not being used at all
-            msgBody.update({fieldName: msgData[dataIterator]})
+        fieldValue = __fromConfig("BYTE_" + str(i) + "CC")
+        if not (fieldValue == '-'): #if byte labelled '-', then is part of a value that spans multiple bytes or is not being used at all
+            msgBody.update({fieldValue: msgData[dataIterator]})
             dataIterator = dataIterator + 1
-    #msgDataType = configSheet.cell(configRow, __getConfigColumn("data type"))
 
     #if GPS time and fix message, update time
     if canId == 246: #can id for GPS Time and Fix message (hex: 0x0F6)
@@ -123,13 +115,6 @@ def translateMsg(msgBytes: bytearray) -> tuple[str, str, dict, datetime, bool]: 
         print("GPS time is now: " + lastGPSTime.strftime("%Y-%m-%d %H:%M:%S"))
 
     return msgItem, msgSource, msgBody, msgTime, msgCRCStatus
-    
-def __getConfigColumn(columnLabel: str) -> int: #used to make sure reordering of columns in config spreadsheet does not cause errors in this script
-    if columnLabel in configColumns:
-        return configColumns[columnLabel]
-    else:
-        print("Column '" + columnLabel + "' missing in 'CAN Data' worksheet in config")
-        sys.exit(2)
 
 def __checkCRC(msgBytes: bytearray) -> bool:
     data = msgBytes[0:-2]      # All except the last two
