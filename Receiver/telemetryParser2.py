@@ -27,8 +27,9 @@ def __getTime(recievedMillis: int) -> datetime:
     if millisDelta < 0:
         millisDelta = millisDelta + 2**32 #Unsign the delta. This method should work as long as the GPS update is not older than 2^32-1 milliseconds
     
-    print("millisDelta" + str(millisDelta))
+    print("millisDelta: " + str(millisDelta) + " -> ", end='')
     currentTime = lastGPSTime + timedelta(milliseconds = millisDelta)
+    print("Current Time: " + currentTime.strftime("%Y-%m-%d %H:%M:%S"))
     return currentTime
 
 #CONFIG INIT REGION
@@ -39,6 +40,7 @@ if not fileExists(configFile):
 #configData = open(configFile)
 
 #with open(configFile) as configData:
+print("Loading config (this process takes a while)")
 config: dict[int, dict] = dict()
 #with load_workbook(configFile, read_only=True, keep_vba=True, data_only=True) as configBook:
 configBook = load_workbook(configFile, read_only=True, keep_vba=True, data_only=True) #Config has VBA macros. Also, data_only=True only works if formulae were evaluated. This is fine since excel does this and openpyxl does not modify config
@@ -123,8 +125,6 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
             year = 2000 + msgData[5] ) #msgData only contains last 2 digits of year so have to add 2000
         timeFetched = recievedMillisTime # update when data was last fetched
         print("GPS time is now: " + lastGPSTime.strftime("%Y-%m-%d %H:%M:%S"))
-    
-    print("Current Time: " + msgTime.strftime("%Y-%m-%d %H:%M:%S"))
 
     return msgItem, msgSource, msgBody, msgTime, msgCRCStatus
 
