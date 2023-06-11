@@ -7,7 +7,7 @@ if __name__ == '__main__':  # Warn if trying to run this as a script
     print("**********************************************\n")
     sys.exit(4)
 
-from telemetryParser import translateMsg
+from telemetryParser2 import translateMsg
 from datetime import datetime
 from openpyxl import load_workbook, Workbook
 from os.path import exists as fileExists

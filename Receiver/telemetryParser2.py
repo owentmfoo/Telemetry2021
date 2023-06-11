@@ -121,7 +121,7 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
             day = msgData[3], \
             month = msgData[4], \
             year = 2000 + msgData[5] ) #msgData only contains last 2 digits of year so have to add 2000
-        timeFetched = int.from_bytes(recievedMillisTime) # update when data was last fetched
+        timeFetched = int.from_bytes(recievedMillisTime, byteorder="little") # update when data was last fetched
         print("GPS time is now: " + lastGPSTime.strftime("%Y-%m-%d %H:%M:%S"))
     
     print("Current Time: " + msgTime.strftime("%Y-%m-%d %H:%M:%S"))
