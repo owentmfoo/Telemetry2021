@@ -7,7 +7,7 @@ if __name__ == '__main__':  # Warn if trying to run this as a script
     print("**********************************************\n")
     sys.exit(4)
 
-from telemetryParser2 import translateMsg
+from telemetryParser import translateMsg
 from datetime import datetime
 from openpyxl import load_workbook, Workbook
 from os.path import exists as fileExists
@@ -23,7 +23,7 @@ class influxCredentials(NamedTuple):
     db: str    = "Test22DB" #"PalaceGreen_2022"
     host: str  = "127.0.0.1"
     port: int  = 8086
-    enabled: bool = False
+    enabled: bool = True #Default to true (otherwise i forget and get confused when theres no data in influx)
 ifCredentials = influxCredentials()
 
 #STORE DATA REGION

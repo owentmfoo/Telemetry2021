@@ -4,6 +4,7 @@ import sys, getopt
 from telemetryStorer import storeData
 import atexit
 import signal
+from time import time
 
 #trying to exit gracefully
 keepLooping = True
@@ -30,6 +31,7 @@ if hexFile == '':
     sys.exit(0)
 
 EndOfFrameMarker = b'\x7E'
+timeStart = time()
 with open(hexFile, mode='rb') as file:
     inputByte = file.read(1)
     frameBuffer: bytearray = bytearray()
@@ -42,6 +44,10 @@ with open(hexFile, mode='rb') as file:
         else:
             frameBuffer.extend(inputByte)
         inputByte = file.read(1)
+
+timeEnd = time()
+timeTaken = timeEnd - timeStart
+print("Converted to Excel in: " + str(timeTaken) + " seconds")
 
 # hex = open(hexFile)
 # hex.readline()

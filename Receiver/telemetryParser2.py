@@ -21,10 +21,14 @@ configFile: str = '../../CANTranslator/config/CANBusData(saved201022)Modified.xl
 
 #TIME REGION
 lastGPSTime: datetime = datetime(1970, 1, 1, 3, 0, 0) #Excel does not support timezones tzinfo=timezone.utc
-timeFetched = time.time() #Time since time variables were last updated in seconds #round(time.time() * 1000)
-def __getTime() -> datetime:
-    #print(lastGPSTime.timestamp() + (time.time() - timeFetched))
-    currentTime = lastGPSTime + timedelta(seconds = (time.time() - timeFetched))
+timeFetched: int = 0 #Time since time variables were last updated in seconds #round(time.time() * 1000)
+def __getTime(recievedMillis: int) -> datetime:
+    millisDelta: int = recievedMillis - timeFetched
+    if millisDelta < 0:
+        millisDelta = millisDelta + 2**32 #Unsign the delta. This method should work as long as the GPS update is not older than 2^32-1 milliseconds
+    
+    print("millisDelta" + str(millisDelta))
+    currentTime = lastGPSTime + timedelta(milliseconds = millisDelta)
     return currentTime
 
 #CONFIG INIT REGION
@@ -69,17 +73,23 @@ def __fromConfig(dictKey):
 print(config)
 
 #TRANSLATE MESSAGE REGION
-def translateMsg(msgBytes: bytearray) -> tuple[str, str, dict, datetime, bool]: #Format: ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1 (NOTE that end of frame marker is not included)
-    print("Translating -> " + str(msgBytes))
+def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, bool]: #Format: TI0 TI1 TI2 TI3 ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1 (NOTE that end of frame marker is not included)
+    print("Translating -> " + str(msgBytesAndTime))
+    
+    msgBytes = msgBytesAndTime[4:]
 
     #get time
-    msgTime = __getTime() #get current time (according to GPS time, not system time)
+    #msgTime = __getTime() #get current time (according to GPS time, not system time)
 
     #CRC check
-    msgCRCStatus = __checkCRC(msgBytes)
+    msgCRCStatus = __checkCRC(msgBytesAndTime)
     if not msgCRCStatus:
-        print("CRC FAILED at " + msgTime.strftime("%Y-%m-%d %H:%M:%S"))
-        return "CRCFail", "", {"Data": hexlify(msgBytes)}, msgTime, False
+        print("CRC FAILED (ignoring message) ")# + msgTime.strftime("%Y-%m-%d %H:%M:%S"))
+        return "CRCFail", "", {"Data": hexlify(msgBytesAndTime)}, datetime(1970, 1, 1, 3, 0, 0), False
+
+    #convert recieved millis delta time
+    recievedMillisTime = int.from_bytes(msgBytesAndTime[0:3], byteorder="little")
+    msgTime = __getTime(recievedMillisTime)
 
     #do a lookup in spreadsheet using can id to work out can message type
     canId = msgBytes[0] << 8 | msgBytes[1]
@@ -111,8 +121,10 @@ def translateMsg(msgBytes: bytearray) -> tuple[str, str, dict, datetime, bool]: 
             day = msgData[3], \
             month = msgData[4], \
             year = 2000 + msgData[5] ) #msgData only contains last 2 digits of year so have to add 2000
-        timeFetched = time.time() # update when data was last fetched
+        timeFetched = int.from_bytes(recievedMillisTime) # update when data was last fetched
         print("GPS time is now: " + lastGPSTime.strftime("%Y-%m-%d %H:%M:%S"))
+    
+    print("Current Time: " + msgTime.strftime("%Y-%m-%d %H:%M:%S"))
 
     return msgItem, msgSource, msgBody, msgTime, msgCRCStatus
 

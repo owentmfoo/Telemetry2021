@@ -5,6 +5,7 @@
 #include "SerialDebugMacros.hpp"
 #include "StatusMsg.hpp"
 #include "src/CANApi/CanApiv03.hpp"
+#include "SensorInputs.hpp"
 
 #define LOG_TO_SERIAL //Now a copy of SD stream and radio stream will be logged to serial output.
 
@@ -15,6 +16,11 @@ extern CANHelper::Messages::Telemetry::_SystemStatusMessages sysStatus; //refere
 #define XBeeSerial Serial2
 extern CANHelper::CanMsgHandler CANHandler;
 extern File dataFile;
+union absoluteTimeUnion_t {
+  long asLong; //to avoid constantly reallocating (can save like 100 nanoseconds of processing time)
+  uint8_t asBytes[sizeof(long)];
+};
+absoluteTimeUnion_t absoluteTime;
 
 void setupSending()
 {
@@ -54,9 +60,11 @@ void out_byte(uint8_t b) {
 //int gencrc(unsigned char dlc) {
 void gencrc() {
     uint16_t crc = 0xFFFF, i;
-    //for (i = 0; i < dlc+3; i++) {
+    for(i = 0; i < sizeof(absoluteTime); i++) {
+      crc = _crc16_update(crc, absoluteTime.asBytes[i]);
+    }
     for(i = 0; i < byte_buffer[2] + 3; i++) {
-        crc = _crc16_update(crc, byte_buffer[i]);
+      crc = _crc16_update(crc, byte_buffer[i]);
     }
     byte_buffer[byte_buffer[2] + 3] = (crc >> 8) & 0xFF; // Bit shift. print most significant byte first, then least.
     byte_buffer[byte_buffer[2] + 4] = crc & 0xFF;
@@ -64,7 +72,7 @@ void gencrc() {
 }
 
 //Sending Data
-void sendMessage(CANHelper::Messages::CANMsg& msg) {
+void sendMessage(CANHelper::Messages::CANMsg& msg) { //Format: TI0 TI1 TI2 TI3 ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1
     /* Sends CAN style message to XBee and logs to SD card.
      * By having in one function means we can be sure everything is robust to lack of SD card for example.
      */
@@ -93,6 +101,12 @@ void sendMessage(CANHelper::Messages::CANMsg& msg) {
     can_frame& castMsg = (can_frame&)msg;
     for (int i = 0; i < msg.metadata.dlc; i++)  {
         byte_buffer[i+3] = castMsg.data[i];
+    }
+
+    //update millis (absolute timestamp which the reciever will use along with latest GPS time fix to get actual time this message was transmitted. Time delta is calculated on the reciver just in case gps time update crc fails)
+    absoluteTime.asLong = millis(); //Need to do this before gencrc()
+    for(int i = 0; i < sizeof(long); i++) { //Append time millis at the end (to avoid having to modify code in reciever)
+      out_byte(absoluteTime.asBytes[i]);
     }
 
     //int16_t crc = gencrc(msg.metadata.dlc);

@@ -19,6 +19,7 @@ Adafruit_GPS GPS(&GPSSerial); //GPS handle
 _TimeAndFix time; //store time in memory
 extern conf config;
 extern CANHelper::CanMsgHandler CANHandler;
+long millisWhenGpsTimeUpdate;
 
 void updateTimeCANMsg() {
   time.data.GpsHour = GPS.hour;
@@ -29,6 +30,7 @@ void updateTimeCANMsg() {
   time.data.GpsYear = GPS.year;
   time.data.GpsFix = GPS.fix;
   time.data.GpsFixquality = GPS.fixquality;
+  millisWhenGpsTimeUpdate = millis();
 }
 
 GPSData gpsData; //would be nice if this worked by using 1 can_frame variable rather than a struct of 4
@@ -57,6 +59,9 @@ void gps2canMsgs() {
   gpsData.altitudeSatellites.data.GpsAltitude = GPS.altitude;
   gpsData.altitudeSatellites.data.GpsSatellites = GPS.satellites;
   sendMessage(gpsData.altitudeSatellites);
+
+  //testing time since time fix function
+  //Serial.println(GPS.secondsSinceTime());
 }
 /*can_frame GPSMessageStore;
 void gps2canMsgs() { //doesnt work because casting from can_frame does not add id and dlc
@@ -175,6 +180,10 @@ void updateGPS() { //https://learn.adafruit.com/adafruit-ultimate-gps?view=all /
           gps2canMsgs();
         }
     //}
+}
+
+long whenTimeFix() {
+  return millisWhenGpsTimeUpdate;
 }
 
 void powerStatus() {
