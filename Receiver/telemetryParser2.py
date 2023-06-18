@@ -7,25 +7,26 @@ if __name__ == '__main__':  # Warn if trying to run this as a script
     print("**********************************************\n")
     sys.exit(4)
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 from openpyxl import load_workbook
 from os.path import exists as fileExists
 import struct
-import time
 from crccheck.crc import Crc16Modbus
 from binascii import hexlify
-from csv import DictReader as csvAsDictReader
+#from csv import DictReader as csvAsDictReader
+import numpy as np
+from numpy import uint32
 
 #configFile: str = './CANConfig.xslx' #raspberrypi
 configFile: str = '../../CANTranslator/config/CANBusData(saved201022)Modified.xlsm' #testing with windows
 
 #TIME REGION
 lastGPSTime: datetime = datetime(1970, 1, 1, 3, 0, 0) #Excel does not support timezones tzinfo=timezone.utc
-timeFetched: int = 0 #Time since time variables were last updated in seconds #round(time.time() * 1000)
+timeFetched: uint32 = uint32(0) #Time since time variables were last updated in seconds #round(time.time() * 1000). Using numpy to force unsigned and integer overflows are needed
 def __getTime(recievedMillis: int) -> datetime:
     millisDelta: int = recievedMillis - timeFetched
-    if millisDelta < 0:
-        millisDelta = millisDelta + 2**32 #Unsign the delta. This method should work as long as the GPS update is not older than 2^32-1 milliseconds
+    #if millisDelta < 0:
+    #    millisDelta = millisDelta + 2**32 #Unsign the delta. This method should work as long as the GPS update is not older than 2^32-1 milliseconds
     
     print("millisDelta: " + str(millisDelta) + " -> ", end='')
     currentTime = lastGPSTime + timedelta(milliseconds = millisDelta)
@@ -90,7 +91,7 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
         return "CRCFail", "", {"Data": hexlify(msgBytesAndTime)}, datetime(1970, 1, 1, 3, 0, 0), False
 
     #convert recieved millis delta time
-    recievedMillisTime = int.from_bytes(msgBytesAndTime[0:3], byteorder="little")
+    recievedMillisTime = np.frombuffer(msgBytesAndTime[0:3], dtype=uint32) #int.from_bytes(msgBytesAndTime[0:3], byteorder="little")
     msgTime = __getTime(recievedMillisTime)
 
     #do a lookup in spreadsheet using can id to work out can message type
