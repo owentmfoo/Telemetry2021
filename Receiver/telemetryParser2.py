@@ -7,7 +7,7 @@ if __name__ == '__main__':  # Warn if trying to run this as a script
     print("**********************************************\n")
     sys.exit(4)
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from openpyxl import load_workbook
 from os.path import exists as fileExists
 import struct
@@ -21,7 +21,7 @@ from numpy import uint32
 configFile: str = '../../CANTranslator/config/CANBusData(saved201022)Modified.xlsm' #testing with windows
 
 #TIME REGION
-lastGPSTime: datetime = datetime(1970, 1, 1, 3, 0, 0) #Excel does not support timezones tzinfo=timezone.utc
+lastGPSTime: datetime = datetime(1970, 1, 1, 3, 0, 0, timezone.utc) #Excel does not support timezones tzinfo=timezone.utc
 timeFetched: uint32 = uint32(0) #Time since time variables were last updated in seconds #round(time.time() * 1000). Using numpy to force unsigned and integer overflows are needed
 def __getTime(recievedMillis: int) -> datetime:
     millisDelta: int = recievedMillis - timeFetched
@@ -123,7 +123,8 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
             second = msgData[2], \
             day = msgData[3], \
             month = msgData[4], \
-            year = 2000 + msgData[5] ) #msgData only contains last 2 digits of year so have to add 2000
+            year = 2000 + msgData[5], \
+            tzinfo=timezone.utc ) #msgData only contains last 2 digits of year so have to add 2000
         timeFetched = recievedMillisTime # update when data was last fetched
         print("GPS time is now: " + lastGPSTime.strftime("%Y-%m-%d %H:%M:%S"))
 
