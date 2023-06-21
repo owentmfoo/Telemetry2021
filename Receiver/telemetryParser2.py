@@ -21,7 +21,7 @@ from numpy import uint32
 configFile: str = '../../CANTranslator/config/CANBusData(saved201022)Modified.xlsm' #testing with windows
 
 #TIME REGION
-lastGPSTime: datetime = datetime(1970, 1, 1, 3, 0, 0, timezone.utc) #Excel does not support timezones tzinfo=timezone.utc
+lastGPSTime: datetime = datetime(year=1970, month=1, day=1, hour=3, minute=0, second=0, tzinfo=timezone.utc) #Excel does not support timezones tzinfo=timezone.utc
 timeFetched: uint32 = uint32(0) #Time since time variables were last updated in seconds #round(time.time() * 1000). Using numpy to force unsigned and integer overflows are needed
 def __getTime(recievedMillis: int) -> datetime:
     millisDelta: int = recievedMillis - timeFetched
