@@ -15,7 +15,8 @@ from typing import NamedTuple
 from influxdb import InfluxDBClient
 
 #TELEMETRY STORE CONFIG
-xlsxOutputFile: str = './CANTelemOutputParser2Test.xlsx' #set equal to '' to switch off xslx output
+#xlsxOutputFile: str = './CANTelemOutputParser2Test.xlsx' #set equal to '' to switch off xslx output
+xlsxOutputFile: str = ''
 class influxCredentials(NamedTuple):
     # influx configuration - edit these
     username: str  = "admin"
