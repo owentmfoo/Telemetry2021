@@ -91,7 +91,7 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
         return "CRCFail", "", {"Data": hexlify(msgBytesAndTime)}, datetime(1970, 1, 1, 3, 0, 0), False
 
     #convert recieved millis delta time
-    recievedMillisTime = np.frombuffer(msgBytesAndTime[0:3], dtype=uint32) #int.from_bytes(msgBytesAndTime[0:3], byteorder="little")
+    recievedMillisTime = np.frombuffer(msgBytesAndTime[0:4], dtype=uint32) #int.from_bytes(msgBytesAndTime[0:3], byteorder="little")
     msgTime = __getTime(recievedMillisTime)
 
     #do a lookup in spreadsheet using can id to work out can message type
