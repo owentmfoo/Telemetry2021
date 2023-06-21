@@ -23,13 +23,13 @@ configFile: str = '../../CANTranslator/config/CANBusData(saved201022)Modified.xl
 #TIME REGION
 lastGPSTime: datetime = datetime(year=1970, month=1, day=1, hour=3, minute=0, second=0, tzinfo=timezone.utc) #Excel does not support timezones tzinfo=timezone.utc
 timeFetched: uint32 = uint32(0) #Time since time variables were last updated in seconds #round(time.time() * 1000). Using numpy to force unsigned and integer overflows are needed
-def __getTime(recievedMillis: int) -> datetime:
-    millisDelta: int = recievedMillis - timeFetched
+def __getTime(recievedMillis: uint32) -> datetime:
+    millisDelta: uint32 = recievedMillis - timeFetched
     #if millisDelta < 0:
     #    millisDelta = millisDelta + 2**32 #Unsign the delta. This method should work as long as the GPS update is not older than 2^32-1 milliseconds
     
-    print("millisDelta: " + str(millisDelta) + " -> ", end='')
-    currentTime = lastGPSTime + timedelta(milliseconds = millisDelta)
+    print("millisDelta: " + str(millisDelta.item()) + " -> ", end='')
+    currentTime = lastGPSTime + timedelta(milliseconds = millisDelta.item())
     print("Current Time: " + currentTime.strftime("%Y-%m-%d %H:%M:%S"))
     return currentTime
 
