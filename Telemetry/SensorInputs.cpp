@@ -2,7 +2,7 @@
 #include "SensorInputs.hpp"
 #include "SerialDebugMacros.hpp"
 #include <Adafruit_GPS.h>
-#include "src/CANApi/CanApiv03.hpp"
+#include "src/CANApi/CanApiv04.hpp"
 #include "StatusMsg.hpp"
 #include "SD.hpp"
 #include "SendMessage.hpp"

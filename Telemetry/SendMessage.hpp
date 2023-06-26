@@ -1,7 +1,7 @@
 #ifndef SENDMESSAGE_HEADER
 #define SENDMESSAGE_HEADER
 
-#include "src/CANApi/CanApiv03.hpp"
+#include "src/CANApi/CanApiv04.hpp"
 
 struct GPSData {
   CANHelper::Messages::Telemetry::_SpeedAndAngle speedAngle;

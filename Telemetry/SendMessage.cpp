@@ -4,7 +4,7 @@
 #include "util/crc16.h"
 #include "SerialDebugMacros.hpp"
 #include "StatusMsg.hpp"
-#include "src/CANApi/CanApiv03.hpp"
+#include "src/CANApi/CanApiv04.hpp"
 #include "SensorInputs.hpp"
 
 #define LOG_TO_SERIAL //Now a copy of SD stream and radio stream will be logged to serial output.

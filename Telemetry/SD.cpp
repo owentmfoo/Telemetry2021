@@ -4,7 +4,7 @@
 #include <SD.h>
 #include "StatusMsg.hpp"
 #include <ArduinoJson.h>
-#include "src/CANApi/CanApiv03.hpp"
+#include "src/CANApi/CanApiv04.hpp"
 
 #define SD_SS 12 //was 12 or 53
 #define CONFIG_FILENAME "config.txt"

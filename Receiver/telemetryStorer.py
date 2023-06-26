@@ -15,8 +15,8 @@ from typing import NamedTuple
 from influxdb import InfluxDBClient
 
 #TELEMETRY STORE CONFIG
-#xlsxOutputFile: str = './CANTelemOutputParser2Test.xlsx' #set equal to '' to switch off xslx output
-xlsxOutputFile: str = ''
+xlsxOutputFile: str = './CANTelemOutputParser3Test.xlsx' #set equal to '' to switch off xslx output
+#xlsxOutputFile: str = ''
 class influxCredentials(NamedTuple):
     # influx configuration - edit these
     username: str  = "admin"
@@ -24,7 +24,7 @@ class influxCredentials(NamedTuple):
     db: str    = "Test22DB" #"PalaceGreen_2022"
     host: str  = "127.0.0.1"
     port: int  = 8086
-    enabled: bool = True #Default to true (otherwise i forget and get confused when theres no data in influx)
+    enabled: bool = False #Default to true (otherwise i forget and get confused when theres no data in influx)
 ifCredentials = influxCredentials()
 
 #STORE DATA REGION
@@ -61,8 +61,11 @@ def __toXlsx(msgItem: str, msgSource: str, msgBody: dict, msgTime: datetime, msg
     global XlsxOutWorkSheet
     global XlsxOutRowPointer
     global xlsxOutputFile
+    
+    msgTime = msgTime.replace(tzinfo=None)
     XlsxOutWorkSheet.cell(column=1, row=XlsxOutRowPointer, value=msgTime)
-    XlsxOutWorkSheet.cell(column=2, row=XlsxOutRowPointer, value=msgTime) #add msgTime because excel doesnt display date and time in one cell
+    XlsxOutWorkSheet.cell(column=2, row=XlsxOutRowPointer, value=msgTime)
+    
     XlsxOutWorkSheet.cell(column=3, row=XlsxOutRowPointer, value=msgSource)
     XlsxOutWorkSheet.cell(column=4, row=XlsxOutRowPointer, value=msgItem)
 
