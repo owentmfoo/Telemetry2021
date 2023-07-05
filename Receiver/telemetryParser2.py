@@ -1,4 +1,5 @@
 import sys
+
 if __name__ == '__main__':  # Warn if trying to run this as a script
     print("\n**********************************************")
     print("   This is not meant to be run as a main script")
@@ -17,8 +18,7 @@ import numpy as np
 from numpy import uint32
 
 #configFile: str = './CANConfig.xslx' #raspberrypi
-# configFile: str = '../../CANTranslator/config/CANBusData(saved201022)Modified.xlsm' #testing with windows
-configFile: str = '../CANBusData(saved201022)Modified.xlsm' #testing with windows
+configFile: str = '../../CANTranslator/config/CANBusData(saved201022)Modified.xlsm' #testing with windows
 
 #TIME REGION
 lastGPSTime: datetime = datetime(year=1970, month=1, day=1, hour=3, minute=0, second=0, tzinfo=timezone.utc) #Excel does not support timezones tzinfo=timezone.utc
