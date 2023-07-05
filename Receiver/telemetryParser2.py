@@ -25,8 +25,8 @@ lastGPSTime: datetime = datetime(year=1970, month=1, day=1, hour=3, minute=0, se
 timeFetched: uint32 = uint32(0) #Time since time variables were last updated in seconds #round(time.time() * 1000). Using numpy to force unsigned and integer overflows are needed
 def __getTime(recievedMillis: uint32) -> datetime:
     millisDelta: uint32 = recievedMillis - timeFetched
-    #if millisDelta < 0:
-    #    millisDelta = millisDelta + 2**32 #Unsign the delta. This method should work as long as the GPS update is not older than 2^32-1 milliseconds
+    if recievedMillis < timeFetched:
+        millisDelta = millisDelta + 2**32 #Unsign the delta. This method should work as long as the GPS update is not older than 2^32-1 milliseconds
     
     print("millisDelta: " + str(millisDelta.item()) + " -> ", end='')
     currentTime = lastGPSTime + timedelta(milliseconds = millisDelta.item())
@@ -97,8 +97,12 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
     #do a lookup in spreadsheet using can id to work out can message type
     canId = msgBytes[0] << 8 | msgBytes[1]
     global rowForCurrentMessage
-    rowForCurrentMessage = config[canId]
-    
+    try:
+        rowForCurrentMessage = config[canId]
+    except:
+        print("Error. Could not config entry for id " + str(canId))
+        return "ID UNRECOGNISED", "ERROR", {"ID": canId}, msgTime, msgCRCStatus
+
     #Translate
     msgItem: str = __fromConfig("ItemCC")
     msgSource: str = __fromConfig("SourceCC")
