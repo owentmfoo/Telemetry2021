@@ -1,11 +1,25 @@
 import sys
+import logging
+logger = logging.getLogger('simple_example')
+logger.setLevel(logging.DEBUG)
 
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+
+# create formatter
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# add formatter to ch
+ch.setFormatter(formatter)
+
+# add ch to logger
+logger.addHandler(ch)
 if __name__ == '__main__':  # Warn if trying to run this as a script
     print("\n**********************************************")
     print("   This is not meant to be run as a main script")
     print("   Run log-to-data.py or live-telem.py instead")
     print("**********************************************\n")
-    sys.exit(4)
+    # sys.exit(4)
 
 from datetime import datetime, timedelta, timezone
 from openpyxl import load_workbook
@@ -18,7 +32,8 @@ import numpy as np
 from numpy import uint32
 
 #configFile: str = './CANConfig.xslx' #raspberrypi
-configFile: str = '../../CANTranslator/config/CANBusData(saved201022)Modified.xlsm' #testing with windows
+# configFile: str = '../../CANTranslator/config/CANBusData(saved201022)Modified.xlsm' #testing with windows
+configFile: str = '../CANBusData(saved201022)Modified.xlsm' #testing with windows
 
 #TIME REGION
 lastGPSTime: datetime = datetime(year=1970, month=1, day=1, hour=3, minute=0, second=0, tzinfo=timezone.utc) #Excel does not support timezones tzinfo=timezone.utc
@@ -52,6 +67,8 @@ if not 'CAN Data' in configBook.sheetnames: #check CAN data worksheet exists
     sys.exit(1)
 configSheet = configBook['CAN Data']
 #c = csvAsDictReader(configData)
+# Old code
+logger.info('Start')
 configColumns: dict[str, int] = dict()
 for columnIterator in range(1, configSheet.max_column + 1):
     configColumns[configSheet.cell(row=1, column=columnIterator).value] = columnIterator
@@ -62,6 +79,22 @@ for rowIndex in range(2, configSheet.max_row + 1):
     for columnName in configColumns:
         rowAsDict[columnName] = configSheet.cell(row=rowIndex, column=configColumns[columnName]).value
     config[configSheet.cell(row=rowIndex, column=configColumns["CAN_ID (dec)"]).value] = rowAsDict
+logger.info('End')
+# New code
+logger.info('Start')
+configCols = {cell.value: i+1 for i, cell in enumerate(configSheet[1])}
+can_ID_col = configCols["CAN_ID (dec)"]
+alt_config = dict()
+for row in configSheet.iter_rows(min_row=2):
+    if row[0].value == "END":
+        break
+    rowAsDict = {columnName: row[configCols[columnName]-1].value for columnName in configCols}
+    alt_config[row[configCols["CAN_ID (dec)"]-1].value] = rowAsDict
+logger.info('End')
+
+# Check the the new config is the same as the old one.
+assert configCols == configColumns
+assert config == alt_config
 configBook.close()
 
 rowForCurrentMessage = dict()
