@@ -99,7 +99,7 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
     global rowForCurrentMessage
     try:
         rowForCurrentMessage = config[canId]
-    except:
+    except KeyError:
         print("Error. Could not config entry for id " + str(canId))
         return "ID UNRECOGNISED", "ERROR", {"ID": canId}, msgTime, msgCRCStatus
 
