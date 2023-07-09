@@ -27,7 +27,7 @@ def __getTime(recievedMillis: uint32) -> datetime:
     millisDelta: uint32 = recievedMillis - timeFetched
     if recievedMillis < timeFetched:
         millisDelta = millisDelta + 2**32 #Unsign the delta. This method should work as long as the GPS update is not older than 2^32-1 milliseconds
-    
+
     print("millisDelta: " + str(millisDelta.item()) + " -> ", end='')
     currentTime = lastGPSTime + timedelta(milliseconds = millisDelta.item())
     print("Current Time: " + currentTime.strftime("%Y-%m-%d %H:%M:%S"))
@@ -71,12 +71,14 @@ def __fromConfig(dictKey):
         print("Column '" + dictKey + "' missing in 'CAN Data' worksheet in config")
         sys.exit(2)
 
-print(config)
+# print config
+for address, packet_config in config.items():
+    print("{}\t{}".format(hex(address), packet_config))
 
 #TRANSLATE MESSAGE REGION
 def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, bool]: #Format: TI0 TI1 TI2 TI3 ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1 (NOTE that end of frame marker is not included)
     print("Translating -> " + str(msgBytesAndTime))
-    
+
     msgBytes = msgBytesAndTime[4:]
 
     #get time
