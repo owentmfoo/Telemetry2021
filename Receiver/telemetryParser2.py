@@ -27,7 +27,7 @@ def __getTime(recievedMillis: uint32) -> datetime:
     millisDelta: uint32 = recievedMillis - timeFetched
     if recievedMillis < timeFetched:
         millisDelta = millisDelta + 2**32 #Unsign the delta. This method should work as long as the GPS update is not older than 2^32-1 milliseconds
-    
+
     print("millisDelta: " + str(millisDelta.item()) + " -> ", end='')
     currentTime = lastGPSTime + timedelta(milliseconds = millisDelta.item())
     print("Current Time: " + currentTime.strftime("%Y-%m-%d %H:%M:%S"))
@@ -52,16 +52,14 @@ if not 'CAN Data' in configBook.sheetnames: #check CAN data worksheet exists
     sys.exit(1)
 configSheet = configBook['CAN Data']
 #c = csvAsDictReader(configData)
-configColumns: dict[str, int] = dict()
-for columnIterator in range(1, configSheet.max_column + 1):
-    configColumns[configSheet.cell(row=1, column=columnIterator).value] = columnIterator
-for rowIndex in range(2, configSheet.max_row + 1):
-    if configSheet.cell(row=rowIndex, column=1).value == "END":
+configColumns = {cell.value: i + 1 for i, cell in enumerate(configSheet[1])}
+can_ID_col = configColumns["CAN_ID (dec)"]
+config = dict()
+for row in configSheet.iter_rows(min_row=2):
+    if row[0].value == "END":
         break
-    rowAsDict = dict()
-    for columnName in configColumns:
-        rowAsDict[columnName] = configSheet.cell(row=rowIndex, column=configColumns[columnName]).value
-    config[configSheet.cell(row=rowIndex, column=configColumns["CAN_ID (dec)"]).value] = rowAsDict
+    rowAsDict = {columnName: row[configColumns[columnName] - 1].value for columnName in configColumns}
+    config[row[configColumns["CAN_ID (dec)"] - 1].value] = rowAsDict
 configBook.close()
 
 rowForCurrentMessage = dict()
@@ -73,16 +71,15 @@ def __fromConfig(dictKey):
         print("Column '" + dictKey + "' missing in 'CAN Data' worksheet in config")
         sys.exit(2)
 
-print(config)
+# print config
+for address, packet_config in config.items():
+    print("{}\t{}".format(hex(address), packet_config))
 
 #TRANSLATE MESSAGE REGION
 def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, bool]: #Format: TI0 TI1 TI2 TI3 ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1 (NOTE that end of frame marker is not included)
     print("Translating -> " + str(msgBytesAndTime))
-    
-    msgBytes = msgBytesAndTime[4:]
 
-    #get time
-    #msgTime = __getTime() #get current time (according to GPS time, not system time)
+    msgBytes = msgBytesAndTime[4:]
 
     #CRC check
     msgCRCStatus = __checkCRC(msgBytesAndTime)
