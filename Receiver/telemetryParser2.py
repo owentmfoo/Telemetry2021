@@ -81,9 +81,6 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
 
     msgBytes = msgBytesAndTime[4:]
 
-    #get time
-    #msgTime = __getTime() #get current time (according to GPS time, not system time)
-
     #CRC check
     msgCRCStatus = __checkCRC(msgBytesAndTime)
     if not msgCRCStatus:
