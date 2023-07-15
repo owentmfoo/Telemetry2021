@@ -107,7 +107,7 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
     msgData = struct.unpack(__fromConfig("struct unpack code"), msgBytes[3:(3 + msgDLC)])
     msgBody: dict = {}
     dataIterator = 0
-    for i in range(0, 8):
+    for i in range(msgDLC):
         fieldValue = __fromConfig("BYTE_" + str(i) + "CC")
         if not (fieldValue == '-'): #if byte labelled '-', then is part of a value that spans multiple bytes or is not being used at all
             msgBody.update({fieldValue: msgData[dataIterator]})
