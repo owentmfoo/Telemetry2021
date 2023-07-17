@@ -1,4 +1,4 @@
-#Telemetry Operation Guide
+# Telemetry Operation Guide
 
 
 Check Arduino is reading CAN msg: 
@@ -7,11 +7,15 @@ Check Arduino is reading CAN msg:
 Check Pi is receiving packets from the xBee: 
 * Check xBee is plugged into the right port: 
 ```shell 
-$ * cd /dev	
+$ cd /dev	
 $ ls -la
 ```
 and check 
 if there is a `ttyUSB0` in the list.
+* Restart `telem.service`: 
+```shell
+$ systemctl restart telem.service
+```
 * Check that `telem.service` is running: 
 ```shell
 $ systemctl status telem.service
@@ -42,4 +46,14 @@ Set up new database in influx:
 $ influx
 > CREATE DATABASE "DatabaseName"
 > exit
+```
+
+Export a measurement from influxdb
+``` shell
+$ influx
+> SHOW DATABASES
+> use database_name
+> SHOW MEASUREMENTS
+> SELECT * FROM measurement_name
+> SELECT * FROM measurement_name > /path/to/export.csv
 ```
