@@ -46,11 +46,11 @@ def __toInflux(msgItem: str, msgSource: str, msgBody: dict, msgTime: datetime, m
     #    p = influxClient.Point(msgSource + '/' + msgItem).field(key, value)
     #    p.time(int(msgTime.timestamp() * 1000))
     
-    body = {'points': [{
-                'measurement': msgSource + '/' + msgItem, #NOTE: Should check format. Old format was "measurement": msgSource but assumes that all fields in all items are uniquely named
-                'time': int(msgTime.timestamp() * 1000), #NOTE: get timestamp from 1970 in milliseconds
-                'fields': msgBody #dictionary of all fields and corresponding values in CAN message
-            }]}
+    body = [{
+                "measurement": msgSource + '/' + msgItem, #NOTE: Should check format. Old format was "measurement": msgSource but assumes that all fields in all items are uniquely named
+                "time": int(msgTime.timestamp() * 1000), #NOTE: get timestamp from 1970 in milliseconds
+                "fields": msgBody #dictionary of all fields and corresponding values in CAN message
+            }]
     influx_success = influxClient.write_points(body, time_precision='ms', protocol='json') #Write data and check if successful
     if influx_success is False:
         print("Error writing to Influx for %s/%s (%s)" %msgSource %msgItem %msgBody)
