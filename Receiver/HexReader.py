@@ -1,7 +1,7 @@
 import os
 #import struct
 import sys, getopt
-from telemetryStorer import storeData
+from telemetryStorer import storeData,endSession
 import atexit
 import signal
 from time import time
@@ -44,7 +44,7 @@ with open(hexFile, mode='rb') as file:
         else:
             frameBuffer.extend(inputByte)
         inputByte = file.read(1)
-
+endSession()
 timeEnd = time()
 timeTaken = timeEnd - timeStart
 print("Converted to Excel in: " + str(timeTaken) + " seconds")
