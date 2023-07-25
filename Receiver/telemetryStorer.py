@@ -15,16 +15,16 @@ from typing import NamedTuple
 from influxdb import InfluxDBClient
 
 #TELEMETRY STORE CONFIG
-xlsxOutputFile: str = './CANTelemOutputParser3Test.xlsx' #set equal to '' to switch off xslx output
-#xlsxOutputFile: str = ''
+#xlsxOutputFile: str = './CANTelemOutputParser3Test.xlsx' #set equal to '' to switch off xslx output
+xlsxOutputFile: str = ''
 class influxCredentials(NamedTuple):
     # influx configuration - edit these
     username: str  = "admin"
     password: str  = "password"
     db: str    = "Test22DB" #"PalaceGreen_2022"
-    host: str  = "127.0.0.1"
+    host: str  = "localhost"
     port: int  = 8086
-    enabled: bool = False #Default to true (otherwise i forget and get confused when theres no data in influx)
+    enabled: bool = True #Default to true (otherwise i forget and get confused when theres no data in influx)
 ifCredentials = influxCredentials()
 
 #STORE DATA REGION
@@ -48,7 +48,8 @@ def __toInflux(msgItem: str, msgSource: str, msgBody: dict, msgTime: datetime, m
     
     body = [{
                 "measurement": msgSource + '/' + msgItem, #NOTE: Should check format. Old format was "measurement": msgSource but assumes that all fields in all items are uniquely named
-                "time": int(msgTime.timestamp() * 1000), #NOTE: get timestamp from 1970 in milliseconds
+                #"time": int(msgTime.timestamp() * 1000), #NOTE: get timestamp from 1970 in milliseconds
+                "time": msgTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
                 "fields": msgBody #dictionary of all fields and corresponding values in CAN message
             }]
     influx_success = influxClient.write_points(body, time_precision='ms', protocol='json') #Write data and check if successful
