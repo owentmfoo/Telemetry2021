@@ -46,30 +46,37 @@ outfile = args.outfile
 mode = args.mode
 
 
-def hex2csv(hex_file, output_csv="output.csv") -> None:
+def hex2csv(hex_file, output_csv="output.csv", csv_write_mode=mode) -> None:
     """Convert hex file to csv
 
     Requires to be executed in a location that telemetryParser2.py can locate
     the config correctly.
 
-    :param hex_file: hex file path
-    :param output_csv: output file path
-    :return: None
+    Args:
+        hex_file: hex file path
+        output_csv: output file path
+        csv_write_mode: write mode for the output csv, either "a" for append or
+        "w" for overwrite
+
+    Returns:
+            None
     """
     end_of_frame_marker = b"\x7E"
     time_start = time()
     with open(hex_file, mode="rb") as file:
         input_bytes = file.readlines()
     msgs = bytearray().join(input_bytes).split(end_of_frame_marker)
-    with open(output_csv, mode) as file:
+    with open(output_csv, csv_write_mode) as file:
         for msg in msgs:
             msg_item, msg_source, msg_body, msg_time, msg_crc_status = translateMsg(msg)
             msg_body = [",".join([str(i), str(j)]) for i, j in msg_body.items()]
             msg_body = msg_body + (8 - len(msg_body)) * 2 * [""]
-            line = f'{msg_item},{msg_source},{",".join(msg_body)},' \
-                   f'{msg_time.strftime("%d/%m/%Y %T.%f")},{msg_crc_status}\n'
+            line = (
+                f'{msg_time.strftime("%d/%m/%Y %T.%f")},{msg_item},'
+                f'{msg_source},{",".join(msg_body)},{msg_crc_status}\n'
+            )
             file.write(line)
-    print(f"Converted to csv in: {time()-time_start} seconds")
+    print(f"Converted to csv in: {time() - time_start} seconds")
 
 
-hex2csv(hexfile, outfile)
+hex2csv(hexfile, outfile, mode)
