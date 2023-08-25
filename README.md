@@ -82,28 +82,31 @@ $ influx
 ```
 ~
 |- telemetry22
-|  |- CANTranslator
-|  |  |- config
-|  |  |  |- CANBusData(saved201022)Modified.xlsm
-|  |  ...
 |  |- Telemetry2021
 |  |  |- Receiver
 |  |  |  |- LiveTelemetry.py
 |  |  |  |- telemetryParser2.py
 |  |  |  |- telemetryStorer.py
 |  |  |  ... 
+|  |- CANTranslator
+|  |  |- config
+|  |  |  |- CANBusData(saved201022)Modified.xlsm
+|  |  ...
 |  ...
 |- start-telem.sh 
 ```
-### `CANBusData.xlsm`
-Contains info for all the CAN messages and how to decode them.
-### `LiveTelemetry.py`
+### Telemetry2021
+[This repo](https://github.com/DUEM/Telemetry2021)
+#### LiveTelemetry.py
 Entry point for the whole process
-### `telemeteryParser2.py`
+#### telemeteryParser2.py
 Called by `telemetryStorer.py`. References `CANBusData.xlsm` to decode the CAN 
 messages.
-### `telemetryStorer.py`
+#### telemetryStorer.py
 Uses `telemetryParser2.py` to decode the can messages and stores it in either
 Excel or Influx. Edit this file to configure the influx credentials or the 
 output Excel file. 
-
+### CANTranslator
+[That repo](https://github.com/DUEM/CANTranslator)
+#### CANBusData.xlsm
+Contains info for all the CAN messages and how to decode them.
