@@ -132,7 +132,7 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
         print("GPS time is now: " + lastGPSTime.strftime("%Y-%m-%d %H:%M:%S"))
 
     #mppt
-    if canId == 1905:
+    if canId == 1905 or canId == 1906:
         print("Decoding MPPT")
         newMsgBody: dict = {
             'VoltageIn': ((msgBody["FlagsAndMsbVoltageIn"] & 3) << 8) | msgBody["LsbVoltageIn"], #bitwise and with 3 because cannot confirm if other bits (marked 'x') in byte are 0 
