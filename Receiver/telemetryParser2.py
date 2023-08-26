@@ -113,6 +113,8 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
             msgBody.update({fieldValue: msgData[dataIterator]})
             dataIterator = dataIterator + 1
 
+    print(f'{msgSource}: {msgBody}') #translated data without any extra decoding
+
     #if GPS time and fix message, update time
     if canId == 246: #can id for GPS Time and Fix message (hex: 0x0F6)
         print("Updating GPS time...")
@@ -132,8 +134,15 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
     #mppt
     if canId == 1905:
         print("Decoding MPPT")
+        newMsgBody: dict = {
+            'VoltageIn': ((msgBody["FlagsAndMsbVoltageIn"] & 3) << 8) | msgBody["LsbVoltageIn"], #bitwise and with 3 because cannot confirm if other bits (marked 'x') in byte are 0 
+            'CurrentIn': ((msgBody["MsbCurrentIn"] & 3) << 8) | msgBody["LsbCurrentIn"],
+            'VoltageOut': ((msgBody["MsbVoltageOut"] & 3) << 8) | msgBody["LsbVoltageOut"],
+            'AmbientTemperature': msgBody["AmbientTemperature"]
+        }
+        msgBody = newMsgBody
+        print("MPPT Decode: " + str(msgBody))
 
-    print(f'{msgSource}: {msgBody}')
     return msgItem, msgSource, msgBody, msgTime, msgCRCStatus
 
 def __checkCRC(msgBytes: bytearray) -> bool:
