@@ -42,10 +42,6 @@ def __toInflux(msgItem: str, msgSource: str, msgBody: dict, msgTime: datetime, m
         return
     global influxClient
     
-    #for key, value in msgBody.items():
-    #    p = influxClient.Point(msgSource + '/' + msgItem).field(key, value)
-    #    p.time(int(msgTime.timestamp() * 1000))
-    
     body = [{
                 "measurement": msgSource + '/' + msgItem, #NOTE: Should check format. Old format was "measurement": msgSource but assumes that all fields in all items are uniquely named
                 #"time": int(msgTime.timestamp() * 1000), #NOTE: get timestamp from 1970 in milliseconds
