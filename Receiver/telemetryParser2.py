@@ -138,7 +138,11 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
             'VoltageIn': ((msgBody["FlagsAndMsbVoltageIn"] & 3) << 8) | msgBody["LsbVoltageIn"], #bitwise and with 3 because cannot confirm if other bits (marked 'x') in byte are 0 
             'CurrentIn': ((msgBody["MsbCurrentIn"] & 3) << 8) | msgBody["LsbCurrentIn"],
             'VoltageOut': ((msgBody["MsbVoltageOut"] & 3) << 8) | msgBody["LsbVoltageOut"],
-            'AmbientTemperature': msgBody["AmbientTemperature"]
+            'AmbientTemperature': msgBody["AmbientTemperature"],
+            'Flag/BatteryVoltageLevelReached': ((msgBody["FlagsAndMsbVoltageIn"] & 128) >> 7),
+            'Flag/OverTemperature': ((msgBody["FlagsAndMsbVoltageIn"] & 64) >> 6),
+            'Flag/NoCharge': ((msgBody["FlagsAndMsbVoltageIn"] & 32) >> 5),
+            'Flag/UnderVoltage': ((msgBody["FlagsAndMsbVoltageIn"] & 16) >> 4)
         }
         msgBody = newMsgBody
         print("MPPT Decode: " + str(msgBody))
