@@ -18,7 +18,7 @@ extern conf config;
 extern File dataFile;
 extern CANHelper::Messages::Telemetry::_TimeAndFix time;
 
-#define canTestMsg
+//#define canTestMsg //This was running the whole time and sending false status messages lol
 #ifdef canTestMsg
 CANHelper::Messages::Telemetry::_SystemStatusMessages canTest; //synthetic CAN test
 #endif
@@ -70,6 +70,7 @@ void setup() { //dont forget to change bitrate to 50KBPS
 uint32_t sd_timer = millis();
 uint32_t status_timer = millis();
 uint32_t gps_timer = millis();
+uint32_t mppt_timer = millis();
 void loop() {
   //Serial.println("LOOP START");
 
@@ -94,8 +95,17 @@ void loop() {
 
   /* Send system status update at desired interval */
   if ((millis() - status_timer) > config.status_update) {
-    status_timer = millis();
     updateStatus();
+    status_timer = millis();
+  }
+
+  /* MPPT Poll */
+  if((millis() - mppt_timer) > config.mppt_update) {
+    CANHelper::Messages::Telemetry::_MpptPollJaved javedPoll;
+    sendMessage(javedPoll);
+    CANHelper::Messages::Telemetry::_MpptPollWoof woofPoll;
+    sendMessage(woofPoll);
+    mppt_timer = millis();
   }
 
 #ifdef canTestMsg
@@ -146,3 +156,5 @@ void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_SpeedA
 void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_AltitudeAndSatellites& msg) {}
 void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_Latitude& msg) {}
 void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_Longitude& msg) {}
+void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_MpptPollJaved& msg) {}
+void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_MpptPollWoof& msg) {}
