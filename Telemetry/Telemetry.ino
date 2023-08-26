@@ -102,9 +102,15 @@ void loop() {
   /* MPPT Poll */
   if((millis() - mppt_timer) > config.mppt_update) {
     CANHelper::Messages::Telemetry::_MpptPollJaved javedPoll;
-    sendMessage(javedPoll);
     CANHelper::Messages::Telemetry::_MpptPollWoof woofPoll;
+
+    //Send to radio and SD
+    sendMessage(javedPoll);
     sendMessage(woofPoll);
+
+    //Send over CAN bus
+    CANHandler.send(javedPoll);
+    CANHandler.send(woofPoll);
     mppt_timer = millis();
   }
 
