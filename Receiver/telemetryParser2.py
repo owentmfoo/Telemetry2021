@@ -128,6 +128,11 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
             tzinfo=timezone.utc ) #msgData only contains last 2 digits of year so have to add 2000
         timeFetched = recievedMillisTime # update when data was last fetched
         print("GPS time is now: " + lastGPSTime.strftime("%Y-%m-%d %H:%M:%S"))
+
+    #mppt
+    if canId == 1905:
+        print("Decoding MPPT")
+
     print(f'{msgSource}: {msgBody}')
     return msgItem, msgSource, msgBody, msgTime, msgCRCStatus
 
