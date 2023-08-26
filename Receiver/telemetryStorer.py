@@ -15,7 +15,7 @@ from typing import NamedTuple
 from influxdb import InfluxDBClient
 
 #TELEMETRY STORE CONFIG
-#xlsxOutputFile: str = './CANTelemOutputParser3Test.xlsx' #set equal to '' to switch off xslx output
+#xlsxOutputFile: str = './ExcelOutput/ExcelTest.xlsx' #set equal to '' to switch off xslx output
 xlsxOutputFile: str = ''
 class influxCredentials(NamedTuple):
     # influx configuration - edit these
@@ -78,7 +78,7 @@ def __toXlsx(msgItem: str, msgSource: str, msgBody: dict, msgTime: datetime, msg
         XlsxOutWorkSheet.cell(column=columnPointer + 1, row=XlsxOutRowPointer, value=value)
         columnPointer += 2
     
-    XlsxOutWorkSheet.cell(column=20, row=XlsxOutRowPointer, value=msgCRCStatus)
+    XlsxOutWorkSheet.cell(column=21, row=XlsxOutRowPointer, value=msgCRCStatus)
 
     XlsxOutRowPointer = XlsxOutRowPointer + 1
     XlsxOutWorkbook.save(xlsxOutputFile) #save every time a line is written. NOTE: this can corrupt xlsx file if program doesn't exit gracefully (i.e. the computer is unplugged). This is fine as it can be rebuilt using telemetry hex dump on SD card
@@ -100,7 +100,7 @@ if not (xlsxOutputFile == ''): #if '', disable xlsx output
     if XlsxOutRowPointer == 2: #if true, then this is a new log
         for i, label in enumerate(['Date', 'Time', 'Source', 'Item', 'Data...']): #Column labels
             XlsxOutWorkSheet.cell(column=i + 1, row=1, value=label)
-        XlsxOutWorkSheet.cell(column=20, row=1, value="CRC check") #longest record is 19 cells so put CRC in 20th
+        XlsxOutWorkSheet.cell(column=21, row=1, value="CRC check") #longest record is 19 cells so put CRC in 20th
         XlsxOutWorkSheet.auto_filter.ref = 'A1:T' + str(XlsxOutWorkSheet.max_row) #Add filters to columns (Source and Item)
     
     storeFunctionList.append(__toXlsx) #add function name to list.
