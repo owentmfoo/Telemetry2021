@@ -30,7 +30,7 @@ def __getTime(recievedMillis: uint32) -> datetime:
 
     print("millisDelta: " + str(millisDelta.item()) + " -> ", end='')
     currentTime = lastGPSTime + timedelta(milliseconds = millisDelta.item())
-    print("Current Time: " + currentTime.strftime("%Y-%m-%d %H:%M:%S"))
+    print("Current Time: " + currentTime.strftime("%Y-%m-%d %H:%M:%S.%f"))
     return currentTime
 
 #CONFIG INIT REGION
