@@ -4,5 +4,10 @@
 #define USE_MSG_Telemetry_Latitude
 #define USE_MSG_Telemetry_Longitude
 #define USE_MSG_Telemetry_AltitudeAndSatellites
+
 #define USE_MSG_DriverControls_SpeedValCurrVal
+
+#define USE_MSG_Telemetry_MpptPollJaved
+#define USE_MSG_Telemetry_MpptPollWoof
+
 #define PROCESS_ALL_MSG

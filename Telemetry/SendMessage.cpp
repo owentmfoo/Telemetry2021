@@ -105,7 +105,7 @@ void sendMessage(CANHelper::Messages::CANMsg& msg) { //Format: TI0 TI1 TI2 TI3 I
 
     //update millis (absolute timestamp which the reciever will use along with latest GPS time fix to get actual time this message was transmitted. Time delta is calculated on the reciver just in case gps time update crc fails)
     absoluteTime.asLong = millis(); //Need to do this before gencrc()
-    for(int i = 0; i < sizeof(long); i++) { //Append time millis at the end (to avoid having to modify code in reciever)
+    for(int i = 0; i < sizeof(long); i++) { //Append time millis at the end (to avoid having to modify code in reciever). Ignore that, millis at start anyway
       out_byte(absoluteTime.asBytes[i]);
     }
 
