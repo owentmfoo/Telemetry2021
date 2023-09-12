@@ -77,6 +77,68 @@ def dist_lookup(
     return mapped_location
 
 
+def calc_grad(road: tp.TecplotData) -> tp.TecplotData:
+    """Calculate the incline for the Road File.
+
+    Calculates the incline using the central difference scheme which is the same
+    as what SolarSim does.
+
+    Extract from SolarSim for reference:
+    ```c
+    (*RoadData).Incline[0] = ((*RoadData).Altitude[1]-(*RoadData).Altitude[0])
+                                                         / ((*RoadData).Distance[1]-(*RoadData).Distance[0]);
+        (*RoadData).Incline[(*RoadData).NDistances-1] = (  (*RoadData).Altitude[(*RoadData).NDistances-1]
+                                                                                                          -(*RoadData).Altitude[(*RoadData).NDistances-2])
+                                                                                                   /(  (*RoadData).Distance[(*RoadData).NDistances-1]
+                                                                                                          -(*RoadData).Distance[(*RoadData).NDistances-2]);
+        PointN = 1;
+        while (PointN < ((*RoadData).NDistances-1)) {
+
+                (*RoadData).Incline[PointN] = ((*RoadData).Altitude[PointN+1]-(*RoadData).Altitude[PointN-1])
+                                                                        / ((*RoadData).Distance[PointN+1]-(*RoadData).Distance[PointN-1]);
+
+                PointN++;
+        };
+        ```
+
+    Args:
+        road:
+            Road file as TecplotData object
+    Returns:
+        TecplotData class representing the road file tih column "Incline" added
+
+    """
+    road.data.rename(
+        columns={
+            "Distance (km)": "Distance",
+            "Altitude (m)": "Altitude",
+        },
+        inplace=True,
+    )
+    NDistances = road.zone.ni
+    road.data.loc[0, "Incline"] = (
+        road.data.Altitude.iloc[1] - road.data.Altitude.iloc[0]
+    ) / (road.data.Distance.iloc[1] - road.data.Distance.iloc[0])
+    road.data.loc[NDistances - 1, "Incline"] = (
+        road.data.Altitude.iloc[-1] - road.data.Altitude.iloc[-2]
+    ) / (road.data.Distance.iloc[-1] - road.data.Distance.iloc[-2])
+    road.data.loc[1 : NDistances - 2, "Incline"] = (
+        road.data.Altitude.loc[2 : NDistances - 1].to_numpy()
+        - road.data.Altitude.loc[0 : NDistances - 3].to_numpy()
+    ) / (
+        road.data.Distance.loc[2 : NDistances - 1].to_numpy()
+        - road.data.Distance.loc[0 : NDistances - 3].to_numpy()
+    )
+    road.data.rename(
+        columns={
+            "Distance": "Distance (km)",
+            "Altitude": "Altitude (m)",
+        },
+        inplace=True,
+    )
+    return road
+
+
 def main(
     if_credentials: influxCredentials = influxCredentials(),
     road_file_path: os.PathLike = "RoadFile-LatLon-2021.dat",
@@ -138,6 +200,7 @@ def main(
 
     # Lookup
     road = tp.TecplotData(road_file_path)
+    road = calc_grad(road)
     mapped_loc = dist_lookup(
         road.data, df.GpsLatitude.to_numpy(), df.GpsLongitude.to_numpy()
     )
