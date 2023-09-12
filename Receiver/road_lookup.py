@@ -36,7 +36,9 @@ def dist_lookup(
         data=[latitude, longitude], index=["Latitude", "Longitude"]
     )
     mapped_location = mapped_location.T
-    if ("Distance (km)" not in road.columns) and (road.index.name != "Distance (km)"):
+    if ("Distance (km)" not in road.columns) and (
+        road.index.name != "Distance (km)"
+    ):
         raise KeyError("road missing Distance (km)")
     if road.index.name != "Distance (km)":
         road.set_index("Distance (km)", inplace=True)
@@ -115,19 +117,19 @@ def calc_grad(road: tp.TecplotData) -> tp.TecplotData:
         },
         inplace=True,
     )
-    NDistances = road.zone.ni
+    ndistances = road.zone.ni
     road.data.loc[0, "Incline"] = (
         road.data.Altitude.iloc[1] - road.data.Altitude.iloc[0]
     ) / (road.data.Distance.iloc[1] - road.data.Distance.iloc[0])
-    road.data.loc[NDistances - 1, "Incline"] = (
+    road.data.loc[ndistances - 1, "Incline"] = (
         road.data.Altitude.iloc[-1] - road.data.Altitude.iloc[-2]
     ) / (road.data.Distance.iloc[-1] - road.data.Distance.iloc[-2])
-    road.data.loc[1 : NDistances - 2, "Incline"] = (
-        road.data.Altitude.loc[2 : NDistances - 1].to_numpy()
-        - road.data.Altitude.loc[0 : NDistances - 3].to_numpy()
+    road.data.loc[1: ndistances - 2, "Incline"] = (
+                                                          road.data.Altitude.loc[2: ndistances - 1].to_numpy()
+        - road.data.Altitude.loc[0: ndistances - 3].to_numpy()
     ) / (
-        road.data.Distance.loc[2 : NDistances - 1].to_numpy()
-        - road.data.Distance.loc[0 : NDistances - 3].to_numpy()
+                                                          road.data.Distance.loc[2: ndistances - 1].to_numpy()
+        - road.data.Distance.loc[0: ndistances - 3].to_numpy()
     )
     road.data.rename(
         columns={
@@ -189,9 +191,9 @@ def main(
     # Reformat the data to a single dataframe and decode
     df = pd.concat([j for i, j in ifdfq.items()], axis=1)
     # decode the lat lon coordinates
-    df["GpsLatitude"] = df["GpsLatitude"].apply(lambda x: x // 100 + (x % 100) / 60) * (
-        (df["GpsLat"] == "N") * 2 - 1
-    )
+    df["GpsLatitude"] = df["GpsLatitude"].apply(
+        lambda x: x // 100 + (x % 100) / 60
+    ) * ((df["GpsLat"] == "N") * 2 - 1)
     df["GpsLongitude"] = df["GpsLongitude"].apply(
         lambda x: x // 100 + (x % 100) / 60
     ) * ((df["GpsLon"] == "E") * 2 - 1)
@@ -204,7 +206,9 @@ def main(
     mapped_loc = dist_lookup(
         road.data, df.GpsLatitude.to_numpy(), df.GpsLongitude.to_numpy()
     )
-    df = df.rename(columns={"GpsLatitude": "Latitude", "GpsLongitude": "Longitude"})
+    df = df.rename(
+        columns={"GpsLatitude": "Latitude", "GpsLongitude": "Longitude"}
+    )
     merged = (
         df.reset_index()
         .merge(mapped_loc, on=["Latitude", "Longitude"])
