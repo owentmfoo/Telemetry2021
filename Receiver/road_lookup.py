@@ -124,12 +124,12 @@ def calc_grad(road: tp.TecplotData) -> tp.TecplotData:
     road.data.loc[ndistances - 1, "Incline"] = (
         road.data.Altitude.iloc[-1] - road.data.Altitude.iloc[-2]
     ) / (road.data.Distance.iloc[-1] - road.data.Distance.iloc[-2])
-    road.data.loc[1: ndistances - 2, "Incline"] = (
-                                                          road.data.Altitude.loc[2: ndistances - 1].to_numpy()
-        - road.data.Altitude.loc[0: ndistances - 3].to_numpy()
+    road.data.loc[1 : ndistances - 2, "Incline"] = (
+        road.data.Altitude.loc[2 : ndistances - 1].to_numpy()
+        - road.data.Altitude.loc[0 : ndistances - 3].to_numpy()
     ) / (
-                                                          road.data.Distance.loc[2: ndistances - 1].to_numpy()
-        - road.data.Distance.loc[0: ndistances - 3].to_numpy()
+        road.data.Distance.loc[2 : ndistances - 1].to_numpy()
+        - road.data.Distance.loc[0 : ndistances - 3].to_numpy()
     )
     road.data.rename(
         columns={
