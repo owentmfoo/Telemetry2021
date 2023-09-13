@@ -110,13 +110,3 @@ output Excel file.
 [That repo](https://github.com/DUEM/CANTranslator)
 #### CANBusData.xlsm
 Contains info for all the CAN messages and how to decode them.
-
-## road_lookup
-
-This is a script that gets the latitude and longitude from the influxdb and 
-maps it to linear race distance via a road file in DSW .dat format.
-
-Once the latitude and longitude were processed, a tag of `post_processed` is 
-added to the datapoints. 
-
-The script obtains the influx credentials from telemetryStorer. 
