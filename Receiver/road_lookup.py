@@ -75,7 +75,9 @@ def dist_lookup(
                 distance.min(),
             )
     mapped_location.dropna(subset="Distance (km)", inplace=True)
-
+    mapped_location = mapped_location.merge(
+        right=road[["Incline"]], on="Distance (km)"
+    )
     return mapped_location
 
 
@@ -86,22 +88,23 @@ def calc_grad(road: tp.TecplotData) -> tp.TecplotData:
     as what SolarSim does.
 
     Extract from SolarSim for reference:
+
     ```c
     (*RoadData).Incline[0] = ((*RoadData).Altitude[1]-(*RoadData).Altitude[0])
-                                                         / ((*RoadData).Distance[1]-(*RoadData).Distance[0]);
-        (*RoadData).Incline[(*RoadData).NDistances-1] = (  (*RoadData).Altitude[(*RoadData).NDistances-1]
-                                                                                                          -(*RoadData).Altitude[(*RoadData).NDistances-2])
-                                                                                                   /(  (*RoadData).Distance[(*RoadData).NDistances-1]
-                                                                                                          -(*RoadData).Distance[(*RoadData).NDistances-2]);
-        PointN = 1;
-        while (PointN < ((*RoadData).NDistances-1)) {
+                         / ((*RoadData).Distance[1]-(*RoadData).Distance[0]);
+    (*RoadData).Incline[(*RoadData).NDistances-1] = (  (*RoadData).Altitude[(*RoadData).NDistances-1]
+                                                          -(*RoadData).Altitude[(*RoadData).NDistances-2])
+                                                   /(  (*RoadData).Distance[(*RoadData).NDistances-1]
+                                                          -(*RoadData).Distance[(*RoadData).NDistances-2]);
+    PointN = 1;
+    while (PointN < ((*RoadData).NDistances-1)) {
 
-                (*RoadData).Incline[PointN] = ((*RoadData).Altitude[PointN+1]-(*RoadData).Altitude[PointN-1])
-                                                                        / ((*RoadData).Distance[PointN+1]-(*RoadData).Distance[PointN-1]);
+            (*RoadData).Incline[PointN] = ((*RoadData).Altitude[PointN+1]-(*RoadData).Altitude[PointN-1])
+                                        / ((*RoadData).Distance[PointN+1]-(*RoadData).Distance[PointN-1]);
 
-                PointN++;
-        };
-        ```
+            PointN++;
+    };
+    ```
 
     Args:
         road:
@@ -112,11 +115,11 @@ def calc_grad(road: tp.TecplotData) -> tp.TecplotData:
     """
     road.data.rename(
         columns={
-            "Distance (km)": "Distance",
             "Altitude (m)": "Altitude",
         },
         inplace=True,
     )
+    road.data.loc[:, "Distance"] = road.data.loc[:, "Distance (km)"] * 1000
     ndistances = road.zone.ni
     road.data.loc[0, "Incline"] = (
         road.data.Altitude.iloc[1] - road.data.Altitude.iloc[0]
@@ -133,11 +136,11 @@ def calc_grad(road: tp.TecplotData) -> tp.TecplotData:
     )
     road.data.rename(
         columns={
-            "Distance": "Distance (km)",
             "Altitude": "Altitude (m)",
         },
         inplace=True,
     )
+    logger.info("Incline calculated.")
     return road
 
 
@@ -179,7 +182,7 @@ def main(
     query_where = (
         'SELECT "GpsLatitude","GpsLongitude","GpsLat","GpsLon" '
         'FROM "Telemetry/Latitude","Telemetry/Longitude" '
-        "WHERE (\"post_processed\"::tag != 'True') "
+        "WHERE (\"calc_grad\"::tag != 'True') AND (time > now() - 180d)"
     )
 
     ifdfq = influx_df_client.query(query_where)
@@ -189,7 +192,7 @@ def main(
         logger.info("No new points to process.")
         return
     # Reformat the data to a single dataframe and decode
-    df = pd.concat([j for i, j in ifdfq.items()], axis=1)
+    df = pd.concat([j.copy() for i, j in ifdfq.items()], axis=1)
     # decode the lat lon coordinates
     df["GpsLatitude"] = df["GpsLatitude"].apply(
         lambda x: x // 100 + (x % 100) / 60
@@ -231,12 +234,12 @@ def main(
         influx_df_client.write_points(
             measurement_df,
             measurement,
-            tags={"post_processed": True},
+            tags={"calc_grad": True},
             protocol="line",
             batch_size=5000,
         )
         influx_client.delete_series(
-            measurement=measurement, tags={"post_processed": ""}
+            measurement=measurement, tags={"calc_grad": ""}
         )
 
     logger.info("All data written to influx.")
