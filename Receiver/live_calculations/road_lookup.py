@@ -3,14 +3,18 @@
 Requires a road file to be located, update the file path to the road file below
 before uploading the script.
 """
+import sys
 import logging
 import os
 from typing import Union
 import numpy as np
 import pandas as pd
 from influxdb import InfluxDBClient, DataFrameClient
-from telemetryStorer import influxCredentials
 import S5.Tecplot as tp
+# TODO: update path to the path to telemetryStorer.py on the Pi
+sys.path.append(r"/Receiver")
+from telemetryStorer import influxCredentials
+
 
 logger = logging.getLogger(__name__)
 
