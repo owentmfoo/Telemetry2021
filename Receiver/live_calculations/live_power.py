@@ -117,7 +117,7 @@ def main(
         .dropna(how="all", axis=1)
         .interpolate()
     )
-
+    logger.info("preprocessing completed. df size %s", df.shape)
     # Calculate
     calc_accel(df)
     calc_drive_power(df)
@@ -134,7 +134,7 @@ def main(
         "live_power",
         {"live_power": True, "power": True},
         protocol="line",
-        batch_size=5000,
+        batch_size=10000,
     )
 
     # # It takes a long time to overwrite all these data so we are just gonna
