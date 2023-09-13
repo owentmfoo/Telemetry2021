@@ -3,7 +3,6 @@
 Requires a road file to be located, update the file path to the road file below
 before uploading the script.
 """
-import sys
 import logging
 import os
 from typing import Union
@@ -11,10 +10,7 @@ import numpy as np
 import pandas as pd
 from influxdb import InfluxDBClient, DataFrameClient
 import S5.Tecplot as tp
-# TODO: update path to the path to telemetryStorer.py on the Pi
-sys.path.append(r"/Receiver")
-from telemetryStorer import influxCredentials
-
+from config import influxCredentials,ROAD_FILE_PATH
 
 logger = logging.getLogger(__name__)
 
@@ -227,7 +223,7 @@ def main(
     # write mapped distance
     influx_df_client.write_points(
         merged,
-        "Calculated Parameters",
+        "road_lookup",
         {"post_processed": True},
         protocol="line",
         batch_size=5000,
@@ -259,7 +255,5 @@ if __name__ == "__main__":
         handlers=[logging.StreamHandler()],  # Add a handler for the root logger
     )
 
-    # TODO: update road file path
-    ROAD_FILE_PATH = "RoadFile-LatLon-2021.dat"
-    # ROAD_FILE_PATH = "Road-Top-Gear-Foo-V1.dat"
+
     main(road_file_path=ROAD_FILE_PATH)

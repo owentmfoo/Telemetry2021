@@ -2,22 +2,13 @@
 
 
 """
-import sys
 import logging
 import pandas as pd
 from influxdb import InfluxDBClient, DataFrameClient
-# TODO: update path to the path to telemetryStorer.py on the Pi
-sys.path.append(r"/Receiver")
-from telemetryStorer import influxCredentials
+from config import influxCredentials, VEHICLE_MASS, G, MOTOR_EFF, CRR, CDA, RHO,\
+    NPOINTS, TDELTA
 
 logger = logging.getLogger(__name__)
-
-VEHICLE_MASS = 250
-G = 9.81
-MOTOR_EFF = 0.95
-CRR = 0.004
-CDA = 0.1
-RHO = 1.225
 
 
 def calc_incline_power(df):
@@ -100,8 +91,8 @@ def main(
     # TODO: query wind data as well when it is integrated with Influx.
     query_where = (
         'SELECT "VehicleVelocity","Incline","VoltageIn","CurrentIn","VoltageIn1","CurrentIn1","VoltageIn2","CurrentIn2"'
-        'FROM "Tritium/Velocity","Calculated Parameters","MpptWoof/Mppt","MpptJaved/Mppt"'
-        "WHERE (time > now() - 180d) ORDER BY time DESC LIMIT 10"
+        'FROM "Tritium/Velocity","road_lookup","MpptWoof/Mppt","MpptJaved/Mppt"'
+        f"WHERE (time > now() - {TDELTA}) ORDER BY time DESC LIMIT {NPOINTS}"
     )
 
     ifdfq = influx_df_client.query(query_where)
@@ -140,7 +131,7 @@ def main(
     # write mapped distance
     influx_df_client.write_points(
         df,
-        "Live Power",
+        "live_power",
         {"live_power": True, "power": True},
         protocol="line",
         batch_size=5000,
