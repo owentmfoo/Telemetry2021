@@ -63,7 +63,7 @@ def write_row(row: pd.Series, influx_client: InfluxDBClient) -> None:
             "Error writing to Influx for %s", row.name.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         )
 
-
+# TODO: upload by chunked by DataFrameClient
 def upload_solarsim(
     history: pd.DataFrame, if_credentials: InfluxCredentials = InfluxCredentials()
 ) -> None:
