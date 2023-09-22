@@ -21,7 +21,10 @@ from numpy import uint32
 configFile: str = '../../CANTranslator/config/CANBusData(saved201022)Modified.xlsm' #testing with windows
 
 #TIME REGION
-lastGPSTime: datetime = datetime(year=1970, month=1, day=1, hour=3, minute=0, second=0, tzinfo=timezone.utc) #Excel does not support timezones tzinfo=timezone.utc
+#lastGPSTime: datetime = datetime(year=1970, month=1, day=1, hour=3, minute=0, second=0, tzinfo=timezone.utc) #Excel does not support timezones tzinfo=timezone.utc
+lastGPSTime: datetime = datetime.now(timezone.utc) #use this by default until the pi rtc goes out of sync (i.e the UPS fails). It can be resynced if reconnected to internet.
+                                                   #If out of sync AND the GPS rtc has failed, use line above and manually try and set a time close to the current time.
+
 timeFetched: uint32 = uint32(0) #Time since time variables were last updated in seconds #round(time.time() * 1000). Using numpy to force unsigned and integer overflows are needed
 def __getTime(recievedMillis: uint32) -> datetime:
     millisDelta: uint32 = recievedMillis - timeFetched

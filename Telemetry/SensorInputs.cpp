@@ -108,7 +108,7 @@ void setupSensorInputs() {
   uint32_t timer = millis();
   DEBUG_PRINT("GPS time acquire timer: "); DEBUG_PRINTLN(timer);
   DEBUG_PRINT("GPS time acquire max: "); DEBUG_PRINTLN(config.time_fix);
-  while (1) {
+  while (0) { //Boot will skip GPS valid time check now. If GPS already has time fix (i.e. RTC is already set), then this shouldn't cause an issue. Otherwise, the pi rtc will be used until GPS gives a time fix message.s
       char c = GPS.read();
 #ifdef GPSECHO
       if(c)
