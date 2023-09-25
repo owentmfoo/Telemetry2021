@@ -64,6 +64,8 @@ $ influx
     ```shell
    git switch nick-22Library
    git pull origin nick-22Library
+   git submodule init
+   git submodule update
    git status
     ```
    and the console should show 
@@ -77,7 +79,26 @@ $ influx
     ```shell
 	scp -r * pi@raspberrypi.local:~/telemetry22/Telemetry2021/
     ``` 
-   
+## Updating the Telemetry Board
+1. Get the latest code from GitHub. Navigate to Telemetry2021 and run the 
+    following command. You'll need internet access for this. 
+    ```shell
+   git switch nick-22Library
+   git pull origin nick-22Library
+   git submodule init
+   git submodule update
+   git status
+    ```
+   and the console should show 
+    ```
+    On branch nick-22Library
+    Your branch is up to date with 'origin/nick-22Library'
+    ```
+2. In the Arduino IDE, open sketch -> Telemetry2021/Telemetry/Telemetry.ino
+   Connect the Arduino to a computer
+   Upload Sketch
+   Done
+
 ## Files on the Pi
 ```
 ~
