@@ -21,8 +21,8 @@ from numpy import uint32
 configFile: str = '../../CANTranslator/config/CANBusData(saved201022)Modified.xlsm' #testing with windows
 
 #TIME REGION
-#lastGPSTime: datetime = datetime(year=1970, month=1, day=1, hour=3, minute=0, second=0, tzinfo=timezone.utc) #Excel does not support timezones tzinfo=timezone.utc
-lastGPSTime: datetime = datetime.now(timezone.utc) #use this by default until the pi rtc goes out of sync (i.e the UPS fails). It can be resynced if reconnected to internet.
+lastGPSTime: datetime = datetime(year=2003, month=1, day=23, hour=11, minute=0, second=0, tzinfo=timezone.utc) #Excel does not support timezones tzinfo=timezone.utc - Saahil's birthday lol
+#lastGPSTime: datetime = datetime.now(timezone.utc) #use this by default until the pi rtc goes out of sync (i.e the UPS fails). It can be resynced if reconnected t#o internet.
                                                    #If out of sync AND the GPS rtc has failed, use line above and manually try and set a time close to the current time.
 
 timeFetched: uint32 = uint32(0) #Time since time variables were last updated in seconds #round(time.time() * 1000). Using numpy to force unsigned and integer overflows are needed
@@ -88,7 +88,7 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
     msgCRCStatus = __checkCRC(msgBytesAndTime)
     if not msgCRCStatus:
         print("CRC FAILED (ignoring message) ")# + msgTime.strftime("%Y-%m-%d %H:%M:%S"))
-        return "CRCFail", "", {"Data": hexlify(msgBytesAndTime)}, datetime(1970, 1, 1, 3, 0, 0), False
+        return "CRCFail", "", {"Data": hexlify(msgBytesAndTime)}, datetime(2003, 1, 23, 11, 0, 0), False
 
     #convert recieved millis delta time
     recievedMillisTime = np.frombuffer(msgBytesAndTime[0:4], dtype=uint32) #int.from_bytes(msgBytesAndTime[0:3], byteorder="little")
@@ -119,20 +119,20 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
     print(f'{msgSource}: {msgBody}') #translated data without any extra decoding
 
     #if GPS time and fix message, update time
-    if canId == 246: #can id for GPS Time and Fix message (hex: 0x0F6)
-        print("Updating GPS time...")
-        global lastGPSTime
-        global timeFetched
-        lastGPSTime = datetime( \
-            hour = msgData[0], \
-            minute = msgData[1], \
-            second = msgData[2], \
-            day = msgData[3], \
-            month = msgData[4], \
-            year = 2000 + msgData[5], \
-            tzinfo=timezone.utc ) #msgData only contains last 2 digits of year so have to add 2000
-        timeFetched = recievedMillisTime # update when data was last fetched
-        print("GPS time is now: " + lastGPSTime.strftime("%Y-%m-%d %H:%M:%S"))
+    #if canId == 246: #can id for GPS Time and Fix message (hex: 0x0F6)
+    print("Updating GPS time...")
+    global lastGPSTime
+    global timeFetched
+    lastGPSTime = datetime( \
+        hour = msgData[0], \
+        minute = msgData[1], \
+        second = msgData[2], \
+        day = msgData[3], \
+        month = msgData[4], \
+        year = 2000 + msgData[5], \
+        tzinfo=timezone.utc ) #msgData only contains last 2 digits of year so have to add 2000
+    timeFetched = recievedMillisTime # update when data was last fetched
+    print("GPS time is now: " + lastGPSTime.strftime("%Y-%m-%d %H:%M:%S"))
 
     #mppt
     if canId == 1905 or canId == 1906:

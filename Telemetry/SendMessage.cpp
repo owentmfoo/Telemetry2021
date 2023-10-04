@@ -134,6 +134,6 @@ void sendMessage(CANHelper::Messages::CANMsg& msg) { //Format: TI0 TI1 TI2 TI3 I
     //dataFile.println();
 }
 
-void sendMessage(can_frame& msg) {
+void sendMessage(can_frame& msg) { //ignore this - tells compiler to treat object differently
   sendMessage((CANHelper::Messages::CANMsg&) msg);
 }
