@@ -120,7 +120,6 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
 
     #if GPS time and fix message, update time
     #if canId == 246: #can id for GPS Time and Fix message (hex: 0x0F6)
-    print("Updating GPS time...")
     global lastGPSTime
     global timeFetched
     lastGPSTime = datetime( \
@@ -133,6 +132,8 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
         tzinfo=timezone.utc ) #msgData only contains last 2 digits of year so have to add 2000
     timeFetched = recievedMillisTime # update when data was last fetched
     print("GPS time is now: " + lastGPSTime.strftime("%Y-%m-%d %H:%M:%S"))
+    if canId = 246
+        print("GPS fix found")
 
     #mppt
     if canId == 1905 or canId == 1906:
