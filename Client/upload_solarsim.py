@@ -91,7 +91,7 @@ def upload_solarsim(
     if history.index.tz is None:
         logging.warning("DataFrame Index is not tz localised. Assuming Darwin tz")
         history = history.tz_localize("Australia/Darwin")
-    for _, row in tqdm(history.iterrows()):
+    for _, row in tqdm(history.iterrows(),total=history.shape[0]):
         write_row(row, influx_client)
     influx_client.close()
 
@@ -133,4 +133,6 @@ if __name__ == "__main__":
     solarsim.add_timestamp(startday=start_date)
     solarsim.data.set_index("DateTime", inplace=True)
     solarsim.data = solarsim.data.tz_localize(tz=tz)
+
+    clear_solarsim()
     upload_solarsim(solarsim.data)
