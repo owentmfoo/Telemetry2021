@@ -16,6 +16,10 @@ from binascii import hexlify
 #from csv import DictReader as csvAsDictReader
 import numpy as np
 from numpy import uint32
+import logging
+
+logging.basicConfig(level=logging.ERROR)
+logger = logging.getLogger(__file__)
 
 #configFile: str = './CANConfig.xslx' #raspberrypi
 configFile: str = '../../CANTranslator/config/CANBusData(saved201022)Modified.xlsm' #testing with windows
@@ -31,33 +35,31 @@ def __getTime(recievedMillis: uint32) -> datetime:
     if recievedMillis < timeFetched:
         millisDelta = millisDelta + 2**32 #Unsign the delta. This method should work as long as the GPS update is not older than 2^32-1 milliseconds
 
-    print("millisDelta: " + str(millisDelta.item()) + " -> ", end='')
     currentTime = lastGPSTime + timedelta(milliseconds = millisDelta.item())
-    print("Current Time: " + currentTime.strftime("%Y-%m-%d %H:%M:%S.%f"))
+    logger.debug("millisDelta: " + str(millisDelta.item()) + " -> "
+                "Current Time: " + currentTime.strftime("%Y-%m-%d %H:%M:%S.%f"))
     return currentTime
 
 #CONFIG INIT REGION
 #get config from excel config workbook. Check 'CAN data' sheet exists
 if not fileExists(configFile):
-    print("Config file " + configFile + " does not exist")
+    logger.info("Config file " + configFile + " does not exist")
     sys.exit(5)
 #configData = open(configFile)
 
 #with open(configFile) as configData:
-print("Loading config (this process takes a while)")
+logger.debug("Loading config (this process takes a while)")
 config: dict[int, dict] = dict()
 #with load_workbook(configFile, read_only=True, keep_vba=True, data_only=True) as configBook:
 configBook = load_workbook(configFile, read_only=True, keep_vba=True, data_only=True) #Config has VBA macros. Also, data_only=True only works if formulae were evaluated. This is fine since excel does this and openpyxl does not modify config
 if not 'CAN Data' in configBook.sheetnames: #check CAN data worksheet exists
-    print("Missing 'CAN Data' worksheet in workbook. Is the config file correct?")
-    print("Worksheets available: ", end='')
-    print(configBook.sheetnames)
+    logger.warning("Missing 'CAN Data' worksheet in workbook. Is the config file correct?")
+    logger.warning("Worksheets available: " + str(configBook.sheetnames))
     sys.exit(1)
 configSheet = configBook['CAN Data']
 #c = csvAsDictReader(configData)
 configColumns = {cell.value: i + 1 for i, cell in enumerate(configSheet[1])}
 can_ID_col = configColumns["CAN_ID (dec)"]
-config = dict()
 for row in configSheet.iter_rows(min_row=2):
     if row[0].value == "END":
         break
@@ -71,23 +73,23 @@ def __fromConfig(dictKey):
     if dictKey in rowForCurrentMessage:
         return rowForCurrentMessage[dictKey]
     else:
-        print("Column '" + dictKey + "' missing in 'CAN Data' worksheet in config")
+        logger.info("Column '" + dictKey + "' missing in 'CAN Data' worksheet in config")
         sys.exit(2)
 
 # print config
 for address, packet_config in config.items():
-    print("{}\t{}".format(hex(address), packet_config))
+    logger.info("{}\t{}".format(hex(address), packet_config))
 
 #TRANSLATE MESSAGE REGION
 def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, bool]: #Format: TI0 TI1 TI2 TI3 ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1 (NOTE that end of frame marker is not included)
-    print("Translating -> " + str(msgBytesAndTime))
+    logger.debug("Translating -> " + str(msgBytesAndTime))
 
     msgBytes = msgBytesAndTime[4:]
 
     #CRC check
     msgCRCStatus = __checkCRC(msgBytesAndTime)
     if not msgCRCStatus:
-        print("CRC FAILED (ignoring message) ")# + msgTime.strftime("%Y-%m-%d %H:%M:%S"))
+        logger.warning("CRC FAILED (ignoring message) ")# + msgTime.strftime("%Y-%m-%d %H:%M:%S"))
         return "CRCFail", "", {"Data": hexlify(msgBytesAndTime)}, datetime(1970, 1, 1, 3, 0, 0), False
 
     #convert recieved millis delta time
@@ -100,7 +102,7 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
     try:
         rowForCurrentMessage = config[canId]
     except KeyError:
-        print("Error. Could not config entry for id " + str(canId))
+        logger.exception("Error. Could not config entry for id " + str(canId))
         return "ID UNRECOGNISED", "ERROR", {"ID": canId}, msgTime, msgCRCStatus
 
     #Translate
@@ -116,27 +118,30 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
             msgBody.update({fieldValue: msgData[dataIterator]})
             dataIterator = dataIterator + 1
 
-    print(f'{msgSource}: {msgBody}') #translated data without any extra decoding
+    logger.debug(f'{msgSource}: {msgBody}') #translated data without any extra decoding
 
     #if GPS time and fix message, update time
     if canId == 246: #can id for GPS Time and Fix message (hex: 0x0F6)
-        print("Updating GPS time...")
+        logger.debug("Updating GPS time...")
         global lastGPSTime
         global timeFetched
-        lastGPSTime = datetime( \
-            hour = msgData[0], \
-            minute = msgData[1], \
-            second = msgData[2], \
-            day = msgData[3], \
-            month = msgData[4], \
-            year = 2000 + msgData[5], \
-            tzinfo=timezone.utc ) #msgData only contains last 2 digits of year so have to add 2000
-        timeFetched = recievedMillisTime # update when data was last fetched
-        print("GPS time is now: " + lastGPSTime.strftime("%Y-%m-%d %H:%M:%S"))
+        try:
+            lastGPSTime = datetime( \
+                hour = msgData[0], \
+                minute = msgData[1], \
+                second = msgData[2], \
+                day = msgData[3], \
+                month = msgData[4], \
+                year = 2000 + msgData[5], \
+                tzinfo=timezone.utc ) #msgData only contains last 2 digits of year so have to add 2000
+            timeFetched = recievedMillisTime # update when data was last fetched
+            logger.debug("GPS time is now: " + lastGPSTime.strftime("%Y-%m-%d %H:%M:%S"))
+        except ValueError:
+            logger.exception("Invalid values for GPS time, %s", str(msgData))
 
     #mppt
     if canId == 1905 or canId == 1906:
-        print("Decoding MPPT")
+        logger.info("Decoding MPPT")
         newMsgBody: dict = {
             'VoltageIn': ((msgBody["FlagsAndMsbVoltageIn"] & 3) << 8) | msgBody["LsbVoltageIn"], #bitwise and with 3 because cannot confirm if other bits (marked 'x') in byte are 0 
             'CurrentIn': ((msgBody["MsbCurrentIn"] & 3) << 8) | msgBody["LsbCurrentIn"],
@@ -148,7 +153,7 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[str, str, dict, datetime, 
             'Flag/UnderVoltage': ((msgBody["FlagsAndMsbVoltageIn"] & 16) >> 4)
         }
         msgBody = newMsgBody
-        print("MPPT Decode: " + str(msgBody))
+        logger.info("MPPT Decode: " + str(msgBody))
 
     return msgItem, msgSource, msgBody, msgTime, msgCRCStatus
 
