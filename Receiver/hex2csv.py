@@ -10,6 +10,11 @@ example:
 """
 import argparse
 from time import time
+
+import numpy as np
+import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
+
 from telemetryParser2 import translateMsg
 
 parser = argparse.ArgumentParser(description="Convert hex file to csv")
@@ -67,15 +72,21 @@ def hex2csv(hex_file, output_csv="output.csv", csv_write_mode=mode) -> None:
         input_bytes = file.readlines()
     msgs = bytearray().join(input_bytes).split(end_of_frame_marker)
     with open(output_csv, csv_write_mode) as file:
-        for msg in msgs:
-            msg_item, msg_source, msg_body, msg_time, msg_crc_status = translateMsg(msg)
-            msg_body = [",".join([str(i), str(j)]) for i, j in msg_body.items()]
-            msg_body = msg_body + (8 - len(msg_body)) * 2 * [""]
-            line = (
-                f'{msg_time.strftime("%d/%m/%Y %T.%f")},{msg_item},'
-                f'{msg_source},{",".join(msg_body)},{msg_crc_status}\n'
-            )
-            file.write(line)
+        with logging_redirect_tqdm():
+            for msg in tqdm.tqdm(msgs):
+                msg_item, msg_source, msg_body, msg_time, msg_crc_status = translateMsg(msg)
+                if msg_crc_status:
+                    recievedMillisTime = np.frombuffer(msg[0:4],
+                                                       dtype=np.uint32)[0]
+                else:
+                    recievedMillisTime = -1
+                msg_body = [",".join([str(i), str(j)]) for i, j in msg_body.items()]
+                msg_body = msg_body + (8 - len(msg_body)) * 2 * [""]
+                line = (
+                    f'{msg_time.strftime("%d/%m/%Y %T.%f")},{msg_item},'
+                    f'{msg_source},{",".join(msg_body)},{msg_crc_status},{recievedMillisTime}\n'
+                )
+                file.write(line)
     print(f"Converted to csv in: {time() - time_start} seconds")
 
 
