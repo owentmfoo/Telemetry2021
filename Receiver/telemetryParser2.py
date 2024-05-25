@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler)
 
 # configFile: str = './CANConfig.xslx' #raspberrypi
-configFile: str = '../../CANTranslator/config/CANBusData(saved201022)Modified.xlsm'  # testing with windows
+configFile: str = '../../CANTranslator/config/CANBusConfig.xlsm'  # testing with windows
 
 # TIME REGION
 # lastGPSTime: datetime = datetime(year=1970, month=1, day=1, hour=3, minute=0, second=0, tzinfo=timezone.utc) #Excel does not support timezones tzinfo=timezone.utc
@@ -141,7 +141,7 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[
         f'{msgSource}: {msgBody}')  # translated data without any extra decoding
 
     # if GPS time and fix message, update time
-    if canId == 246:  # can id for GPS Time and Fix message (hex: 0x0F6)
+    if canId == 24 and msgData[4] != 0:  # can id for GPS Time and Fix message (hex: 0x0F6)
         logger.debug("Updating GPS time...")
         global lastGPSTime
         global timeFetched
