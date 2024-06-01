@@ -17,40 +17,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 
 from telemetryParser2 import translateMsg
 
-parser = argparse.ArgumentParser(description="Convert hex file to csv")
-parser.add_argument(
-    "-i",
-    "--hexfile",
-    action="store",
-    type=str,
-    help="Hex file to convert",
-    required=True,
-)
-parser.add_argument(
-    "-o",
-    "--outfile",
-    action="store",
-    type=str,
-    help="Out csv file path",
-    default="output.csv",
-)
-parser.add_argument(
-    "-m",
-    "--mode",
-    action="store",
-    type=str,
-    help="File writing mode: append or overwrite",
-    default="a",
-    choices=["a", "w"],
-)
-args = parser.parse_args()
-# TODO: we can also consider taking a list of bin files?
-
-hexfile = args.hexfile
-outfile = args.outfile
-mode = args.mode
-
-
+mode = "a"
 def hex2csv(hex_file, output_csv="output.csv", csv_write_mode=mode) -> None:
     """Convert hex file to csv
 
@@ -90,4 +57,37 @@ def hex2csv(hex_file, output_csv="output.csv", csv_write_mode=mode) -> None:
     print(f"Converted to csv in: {time() - time_start} seconds")
 
 
-hex2csv(hexfile, outfile, mode)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Convert hex file to csv")
+    parser.add_argument(
+        "-i",
+        "--hexfile",
+        action="store",
+        type=str,
+        help="Hex file to convert",
+        required=True,
+    )
+    parser.add_argument(
+        "-o",
+        "--outfile",
+        action="store",
+        type=str,
+        help="Out csv file path",
+        default="output.csv",
+    )
+    parser.add_argument(
+        "-m",
+        "--mode",
+        action="store",
+        type=str,
+        help="File writing mode: append or overwrite",
+        default="a",
+        choices=["a", "w"],
+    )
+    args = parser.parse_args()
+    # TODO: we can also consider taking a list of bin files?
+
+    hexfile = args.hexfile
+    outfile = args.outfile
+    mode = args.mode
+    hex2csv(hexfile, outfile, mode)

@@ -21,8 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler)
 
-# configFile: str = './CANConfig.xslx' #raspberrypi
-configFile: str = '../../CANTranslator/config/CANBusConfig.xlsm'  # testing with windows
+from receiver_config import configFile
 
 # TIME REGION
 # lastGPSTime: datetime = datetime(year=1970, month=1, day=1, hour=3, minute=0, second=0, tzinfo=timezone.utc) #Excel does not support timezones tzinfo=timezone.utc
