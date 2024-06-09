@@ -4,13 +4,13 @@
 #include <SD.h>
 #include "StatusMsg.hpp"
 #include <ArduinoJson.h>
-#include "src/CANApi/CanApiv04.hpp"
+#include "src/CANApi/CANHelper.hpp"
 
 #define SD_SS 12 //was 12 or 53
 #define CONFIG_FILENAME "config.txt"
 
 conf config;
-extern CANHelper::Messages::Telemetry::_TimeAndFix time;
+extern CANHelper::CANHelperBuffer time;
 File dataFile;
 
 void set_defaults() {
@@ -82,9 +82,9 @@ void startSDLog() {
     DEBUG_PRINTLN("Starting SD log");
 
     // Get date. If GPS signal is not available this will default to 00/00/00
-    int8_t YY = time.data.GpsYear;
-    int8_t MM = time.data.GpsMonth;
-    int8_t DD = time.data.GpsDay;
+    int8_t YY = time.payloadBuffer.as_Telemetry_TimeAndFix.GpsYear;
+    int8_t MM = time.payloadBuffer.as_Telemetry_TimeAndFix.GpsMonth;
+    int8_t DD = time.payloadBuffer.as_Telemetry_TimeAndFix.GpsDay;
 
     char filename[13]; //"YYMMDD00.txt" Filename is max 12 characters long
 

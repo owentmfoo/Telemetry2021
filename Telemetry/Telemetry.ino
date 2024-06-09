@@ -1,4 +1,4 @@
-#include "src/CANApi/CanApiv04.hpp"
+#include "src/CANApi/CANHelper.hpp"
 #include "SD.hpp"
 #include <SD.h>
 #include "SendMessage.hpp"
@@ -13,10 +13,10 @@
 #define SLEEP_INT 33
 #define FLAG_INT 22
 
-CANHelper::CanMsgHandler CANHandler(MCP_SS);
+CANHelper::CANHandler canHandler(MCP_SS, CAN_50KBPS);
 extern conf config;
 extern File dataFile;
-extern CANHelper::Messages::Telemetry::_TimeAndFix time;
+extern CANHelper::CANHelperBuffer time;
 
 //#define canTestMsg //This was running the whole time and sending false status messages lol
 #ifdef canTestMsg
@@ -76,7 +76,7 @@ void loop() {
 
   powerStatus();  // Check power status
   flagStatus();   // Check flag
-  CANHandler.read();      // Read incoming CAN message and treat accordingly
+  canHandler.read();      // Read incoming CAN message and treat accordingly
   //pollSensor();   // Poll additional sensors
 
   /* Flush SD file at interval defined in config file */
@@ -101,16 +101,17 @@ void loop() {
 
   /* MPPT Poll */
   if((millis() - mppt_timer) > config.mppt_update) {
-    CANHelper::Messages::Telemetry::_MpptPollJaved javedPoll;
-    CANHelper::Messages::Telemetry::_MpptPollWoof woofPoll;
+    CANHelper::CANHelperBuffer poll;
+    poll.payloadBuffer.as_Telemetry_MpptPollJaved.Blank = 0; //mppt has 1 byte as influx complains of 0 byte payloads. Also doent matter as to which struct its casted to as poll and javed have equal structures
 
-    //Send to radio and SD
-    sendMessage(javedPoll);
-    sendMessage(woofPoll);
+    canHandler.setCanMeta(poll, CAN_META_Telemetry_MpptPollJaved);
+    sendMessage(poll); //send over radio (and SD)
+    canHandler.send(poll); //send to CAN bus
 
-    //Send over CAN bus
-    CANHandler.send(javedPoll);
-    CANHandler.send(woofPoll);
+    canHandler.setCanMeta(poll, CAN_META_Telemetry_MpptPollWoof);
+    sendMessage(poll);
+    canHandler.send(poll);
+
     mppt_timer = millis();
   }
 
@@ -134,7 +135,7 @@ void updateStatusLEDs(uint8_t statusCode)
 }
 
 //Just relays all CAN messages over radio
-void CANHelper::Messages::processAll(CANHelper::Messages::CANMsg& msg)
+void CANHelper::CanMsgHandler::processAll(CANHelper::CANHelperBuffer& msg)
 {
   sendMessage(msg);
 
@@ -149,18 +150,10 @@ void CANHelper::Messages::processAll(CANHelper::Messages::CANMsg& msg)
     sysStatus.data[pos] = val;
 }*/
 
-void CANHelper::Messages::processMessage(CANHelper::Messages::DriverControls::_SpeedValCurrVal& msg) {
+void CANHelper::CanMsgHandler::processMessage(CANHelper::Messages::DriverControls::SpeedValCurrVal& msg) {
   Serial.print("Set Current: ");
-  Serial.print(msg.data.DriverSetCurrent);
+  Serial.print(msg.DriverSetCurrent);
   Serial.print("| Set Speed: ");
-  Serial.println(msg.data.DriverSetSpeed);
-  CANHandler.send(msg); //just reflecting data to confirm message was received
+  Serial.println(msg.DriverSetSpeed);
+  //CANHandler.send(msg); //just reflecting data to confirm message was received
 }
-void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_SystemStatusMessages& msg) {}
-void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_TimeAndFix& msg) {}
-void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_SpeedAndAngle& msg) {}
-void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_AltitudeAndSatellites& msg) {}
-void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_Latitude& msg) {}
-void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_Longitude& msg) {}
-void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_MpptPollJaved& msg) {}
-void CANHelper::Messages::processMessage(CANHelper::Messages::Telemetry::_MpptPollWoof& msg) {}
