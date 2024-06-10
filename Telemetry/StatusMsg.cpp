@@ -5,6 +5,10 @@ CANHelper::CANHelperBuffer sysStatus;
 #define SYS_STAT_BUF sysStatus.payloadBuffer.as_Telemetry_SystemStatusMessages
 //CANHelper::Messages::Telemetry::_SystemStatusMessages sysStatus; //access in all other compilation units
 
+void setupStatusMsg(CANHelper::CANHandler canHandler) {
+  canHandler.setCanMeta(sysStatus, CAN_META_Telemetry_SystemStatusMessages);
+}
+
 void updateStatus() {
   sendMessage(sysStatus);
 }

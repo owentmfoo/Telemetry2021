@@ -23,17 +23,18 @@ extern CANHelper::CANHelperBuffer time;
 CANHelper::Messages::Telemetry::_SystemStatusMessages canTest; //synthetic CAN test
 #endif
 
-uint8_t statusNumber; //For status LEDs
 void setup() { //dont forget to change bitrate to 50KBPS
   Serial.begin(230400);
   DEBUG_PRINTLN("Setting up");
+
+  setupStatusMsg(canHandler);
 
   //Set status LED pinmodes
   pinMode(35, OUTPUT);
   pinMode(37, OUTPUT);
   pinMode(39, OUTPUT);
 
-  statusNumber = 0;
+  uint8_t statusNumber = 0; //For status LEDs
   updateStatusLEDs(++statusNumber);
   //Set pinmodes
   pinMode(12, OUTPUT); //stop SDSS going into slave mode. This might be why the SD card is freezing
