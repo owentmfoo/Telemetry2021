@@ -19,7 +19,7 @@ from numpy import uint32
 import logging
 
 logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler)
+logger.addHandler(logging.NullHandler())
 
 from Receiver.receiver_config import configFile
 
