@@ -32,6 +32,7 @@ class TelemetryParser:
             0
         )  # Time since time variables were last updated in seconds #round(time.time() * 1000). Using numpy to force unsigned and integer overflows are needed
         self.rowForCurrentMessage = dict()
+        self.config: dict[int, dict] = dict()
 
         # CONFIG INIT REGION
         # get config from Excel config workbook. Check 'CAN data' sheet exists
@@ -40,7 +41,6 @@ class TelemetryParser:
             sys.exit(5)
 
         logger.debug("Loading config (this process takes a while)")
-        self.config: dict[int, dict] = dict()
         configBook = load_workbook(
             config_file, read_only=True, keep_vba=True, data_only=True
         )  # Config has VBA macros. Also, data_only=True only works if formulae were evaluated. This is fine since excel does this and openpyxl does not modify config
@@ -120,9 +120,9 @@ class TelemetryParser:
 
         # do a lookup in spreadsheet using can id to work out can message type
         canId = msgBytes[0] << 8 | msgBytes[1]
-        try:
+        if canId in self.config.keys():
             self.rowForCurrentMessage = self.config[canId]
-        except KeyError:
+        else:
             logger.exception("Error. Could not config entry for id " + str(canId))
             return "ID UNRECOGNISED", "ERROR", {"ID": canId}, msgTime, msgCRCStatus
 
