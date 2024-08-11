@@ -12,8 +12,10 @@ from openpyxl import load_workbook, Workbook
 from os.path import exists as fileExists
 
 from influxdb import InfluxDBClient
-from Receiver.telemetryParser2 import translateMsg
+from Receiver.telemetryParser3 import TelemetryParser
 from Receiver.receiver_config import ifCredentials
+
+telemetry_parser = TelemetryParser()
 
 #TELEMETRY STORE CONFIG
 #xlsxOutputFile: str = './ExcelOutput/ExcelTest.xlsx' #set equal to '' to switch off xslx output
@@ -22,7 +24,7 @@ xlsxOutputFile: str = ''
 #STORE DATA REGION
 storeFunctionList: list = []
 def storeData(msg: bytearray) -> None:
-    msgItem, msgSource, msgBody, msgTime, msgCRCStatus = translateMsg(msg) #this implicitly updates timestamp. I.e always run this first
+    msgItem, msgSource, msgBody, msgTime, msgCRCStatus = telemetry_parser.translateMsg(msg) #this implicitly updates timestamp. I.e always run this first
     for i in storeFunctionList:
         i(msgItem, msgSource, msgBody, msgTime, msgCRCStatus)
 

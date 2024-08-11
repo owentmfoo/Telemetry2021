@@ -15,10 +15,10 @@ import numpy as np
 import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
-from Receiver.telemetryParser2 import translateMsg
+from Receiver.telemetryParser3 import TelemetryParser
 
 mode = "a"
-def hex2csv(hex_file, output_csv="output.csv", csv_write_mode=mode) -> None:
+def hex2csv(hex_file, output_csv="output.csv", csv_write_mode=mode, telemetry_parser=TelemetryParser()) -> None:
     """Convert hex file to csv
 
     Requires to be executed in a location that telemetryParser2.py can locate
@@ -41,7 +41,7 @@ def hex2csv(hex_file, output_csv="output.csv", csv_write_mode=mode) -> None:
     with open(output_csv, csv_write_mode) as file:
         with logging_redirect_tqdm():
             for msg in tqdm.tqdm(msgs):
-                msg_item, msg_source, msg_body, msg_time, msg_crc_status = translateMsg(msg)
+                msg_item, msg_source, msg_body, msg_time, msg_crc_status = telemetry_parser.translateMsg(msg)
                 if msg_crc_status:
                     recievedMillisTime = np.frombuffer(msg[0:4],
                                                        dtype=np.uint32)[0]
