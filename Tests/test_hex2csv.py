@@ -8,12 +8,12 @@ def run_in_receiver(request, monkeypatch):
 
 def test_hex2csv(monkeypatch, tmp_path, run_in_receiver):
     # arrange
-    monkeypatch.setattr("receiver_config.configFile",
+    monkeypatch.setattr("Receiver.receiver_config.configFile",
                         "../Tests/data/CANBusConfig.xlsm")
-    monkeypatch.setattr("telemetryParser2.lastGPSTime",
+    monkeypatch.setattr("Receiver.telemetryParser2.lastGPSTime",
                         datetime(year=1970, month=1, day=1, hour=3, minute=0,
                                  second=0, tzinfo=timezone.utc))
-    from hex2csv import hex2csv
+    from Receiver.hex2csv import hex2csv
 
     # act
     hex2csv("../Tests/data/NRT.BIN", f"{tmp_path}/output.csv", "w")
@@ -28,12 +28,12 @@ def test_hex2csv(monkeypatch, tmp_path, run_in_receiver):
 
 def test_hex2csv2(monkeypatch, tmp_path, run_in_receiver):
     # arrange
-    monkeypatch.setattr("receiver_config.configFile",
+    monkeypatch.setattr("Receiver.receiver_config.configFile",
                         "../Tests/data/CANBusConfig.xlsm")
-    monkeypatch.setattr("telemetryParser2.lastGPSTime",
+    monkeypatch.setattr("Receiver.telemetryParser2.lastGPSTime",
                         datetime(year=1970, month=1, day=1, hour=3, minute=0,
                                  second=0, tzinfo=timezone.utc))
-    from hex2csv import hex2csv
+    from Receiver.hex2csv import hex2csv
 
     # act
     hex2csv("../Tests/data/MPPT.BIN", f"{tmp_path}/output.csv", "w")

@@ -16,7 +16,7 @@ from typing import NamedTuple
 import tqdm
 from influxdb import InfluxDBClient
 
-from telemetryParser2 import translateMsg
+from Receiver.telemetryParser2 import translateMsg
 from datetime import datetime
 
 parser = argparse.ArgumentParser(description="Import hex file to influxdb, "
