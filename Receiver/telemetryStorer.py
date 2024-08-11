@@ -7,25 +7,17 @@ if __name__ == '__main__':  # Warn if trying to run this as a script
     print("**********************************************\n")
     sys.exit(4)
 
-from telemetryParser2 import translateMsg
 from datetime import datetime
 from openpyxl import load_workbook, Workbook
 from os.path import exists as fileExists
-from typing import NamedTuple
+
 from influxdb import InfluxDBClient
+from Receiver.telemetryParser2 import translateMsg
+from Receiver.receiver_config import ifCredentials
 
 #TELEMETRY STORE CONFIG
 #xlsxOutputFile: str = './ExcelOutput/ExcelTest.xlsx' #set equal to '' to switch off xslx output
 xlsxOutputFile: str = ''
-class influxCredentials(NamedTuple):
-    # influx configuration - edit these
-    username: str  = "admin"
-    password: str  = "password"
-    db: str    = "Test22DB" #"PalaceGreen_2022"
-    host: str  = "localhost"
-    port: int  = 8086
-    enabled: bool = True #Default to true (otherwise i forget and get confused when theres no data in influx)
-ifCredentials = influxCredentials()
 
 #STORE DATA REGION
 storeFunctionList: list = []
