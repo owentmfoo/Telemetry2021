@@ -24,7 +24,7 @@ xlsxOutputFile: str = ''
 #STORE DATA REGION
 storeFunctionList: list = []
 def storeData(msg: bytearray) -> None:
-    msgItem, msgSource, msgBody, msgTime, msgCRCStatus = telemetry_parser.translateMsg(msg) #this implicitly updates timestamp. I.e always run this first
+    msgItem, msgSource, msgBody, msgTime, msgCRCStatus = telemetry_parser.translate_msg(msg) #this implicitly updates timestamp. I.e always run this first
     for i in storeFunctionList:
         i(msgItem, msgSource, msgBody, msgTime, msgCRCStatus)
 

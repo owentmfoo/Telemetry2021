@@ -41,7 +41,7 @@ def hex2csv(hex_file, output_csv="output.csv", csv_write_mode=mode, telemetry_pa
     with open(output_csv, csv_write_mode) as file:
         with logging_redirect_tqdm():
             for msg in tqdm.tqdm(msgs):
-                msg_item, msg_source, msg_body, msg_time, msg_crc_status = telemetry_parser.translateMsg(msg)
+                msg_item, msg_source, msg_body, msg_time, msg_crc_status = telemetry_parser.translate_msg(msg)
                 if msg_crc_status:
                     recievedMillisTime = np.frombuffer(msg[0:4],
                                                        dtype=np.uint32)[0]
