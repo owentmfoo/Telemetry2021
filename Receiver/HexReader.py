@@ -1,7 +1,7 @@
 import os
 #import struct
 import sys, getopt
-from telemetryStorer import storeData,endSession
+from Receiver.telemetryStorer import storeData,endSession
 import atexit
 import signal
 from time import time
