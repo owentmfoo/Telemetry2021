@@ -58,10 +58,12 @@ class TelemetryParser:
             logger.warning(
                 "Missing 'CAN Data' worksheet in workbook. Is the config file correct?"
             )
-            logger.warning("Worksheets available: " + str(configBook.sheetnames))
+            logger.warning(
+                "Worksheets available: " + str(configBook.sheetnames))
             sys.exit(1)
         configSheet = configBook["CAN Data"]
-        configColumns = {cell.value: i + 1 for i, cell in enumerate(configSheet[1])}
+        configColumns = {cell.value: i + 1 for i, cell in
+                         enumerate(configSheet[1])}
         for row in configSheet.iter_rows(min_row=2):
             if row[0].value == "END":
                 break
@@ -80,13 +82,15 @@ class TelemetryParser:
         millisDelta: uint32 = recievedMillis - self.timeFetched
         if recievedMillis < self.timeFetched:
             millisDelta = (
-                millisDelta + 2**32
+                    millisDelta + 2 ** 32
             )  # Unsign the delta. This method should work as long as the GPS update is not older than 2^32-1 milliseconds
 
-        currentTime = self.lastGPSTime + timedelta(milliseconds=millisDelta.item())
+        currentTime = self.lastGPSTime + timedelta(
+            milliseconds=millisDelta.item())
         logger.debug(
             "millisDelta: " + str(millisDelta.item()) + " -> "
-            "Current Time: " + currentTime.strftime("%Y-%m-%d %H:%M:%S.%f")
+                                                        "Current Time: " + currentTime.strftime(
+                "%Y-%m-%d %H:%M:%S.%f")
         )
         return currentTime
 
@@ -101,7 +105,7 @@ class TelemetryParser:
 
     # TRANSLATE MESSAGE REGION
     def translate_msg(
-        self, msgBytesAndTime: bytearray
+            self, msgBytesAndTime: bytearray
     ) -> tuple[
         str, str, dict, datetime, bool
     ]:  # Format: TI0 TI1 TI2 TI3 ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1 (NOTE that end of frame marker is not included)
@@ -134,20 +138,23 @@ class TelemetryParser:
         if canId in self.config.keys():
             self.rowForCurrentMessage = self.config[canId]
         else:
-            logger.exception("Error. Could not config entry for id " + str(canId))
-            return "ID UNRECOGNISED", "ERROR", {"ID": canId}, msgTime, msgCRCStatus
+            logger.exception(
+                "Error. Could not config entry for id " + str(canId))
+            return "ID UNRECOGNISED", "ERROR", {
+                "ID": canId}, msgTime, msgCRCStatus
 
         # Translate
         msgItem: str = self.__from_config("ItemCC")
         msgSource: str = self.__from_config("SourceCC")
         msgDLC = self.__from_config("DLC")
         msgData = struct.unpack(
-            self.__from_config("struct unpack code"), msgBytes[3 : (3 + msgDLC)]
+            self.__from_config("struct unpack code"), msgBytes[3: (3 + msgDLC)]
         )
         msgBody = self.decode_can_msg(canId, msgDLC, msgData,
                                       msgSource, recievedMillisTime)
-        if msgSource == "Tritium": # TODO: tritium drop in decoding test
-            msgBody = decode_can_msg(canId, msgBytes[3 : (3 + msgDLC)])
+        if msgSource in ["Tritium",
+                         "Mppt"]:  # TODO: drop in dbc decoded message
+            msgBody = decode_can_msg(canId, msgBytes[3: (3 + msgDLC)])
         return msgItem, msgSource, msgBody, msgTime, msgCRCStatus
 
     def decode_can_msg(self, canId, msgDLC, msgData, msgSource,
@@ -189,29 +196,29 @@ class TelemetryParser:
             except ValueError:
                 logger.exception("Invalid values for GPS time, %s",
                                  str(msgData))
-        # mppt
-        if canId == 1905 or canId == 1906:
-            logger.info("Decoding MPPT")
-            newMsgBody: dict = {
-                "VoltageIn": ((msgBody["FlagsAndMsbVoltageIn"] & 3) << 8)
-                             | msgBody["LsbVoltageIn"],
-                # bitwise and with 3 because cannot confirm if other bits (marked 'x') in byte are 0
-                "CurrentIn": ((msgBody["MsbCurrentIn"] & 3) << 8)
-                             | msgBody["LsbCurrentIn"],
-                "VoltageOut": ((msgBody["MsbVoltageOut"] & 3) << 8)
-                              | msgBody["LsbVoltageOut"],
-                "AmbientTemperature": msgBody["AmbientTemperature"],
-                "Flag/BatteryVoltageLevelReached": (
-                        (msgBody["FlagsAndMsbVoltageIn"] & 128) >> 7
-                ),
-                "Flag/OverTemperature": (
-                            (msgBody["FlagsAndMsbVoltageIn"] & 64) >> 6),
-                "Flag/NoCharge": ((msgBody["FlagsAndMsbVoltageIn"] & 32) >> 5),
-                "Flag/UnderVoltage": (
-                            (msgBody["FlagsAndMsbVoltageIn"] & 16) >> 4),
-            }
-            msgBody = newMsgBody
-            logger.info("MPPT Decode: " + str(msgBody))
+        # # mppt
+        # if canId == 1905 or canId == 1906:
+        #     logger.info("Decoding MPPT")
+        #     newMsgBody: dict = {
+        #         "VoltageIn": ((msgBody["FlagsAndMsbVoltageIn"] & 3) << 8)
+        #                      | msgBody["LsbVoltageIn"],
+        #         # bitwise and with 3 because cannot confirm if other bits (marked 'x') in byte are 0
+        #         "CurrentIn": ((msgBody["MsbCurrentIn"] & 3) << 8)
+        #                      | msgBody["LsbCurrentIn"],
+        #         "VoltageOut": ((msgBody["MsbVoltageOut"] & 3) << 8)
+        #                       | msgBody["LsbVoltageOut"],
+        #         "AmbientTemperature": msgBody["AmbientTemperature"],
+        #         "Flag/BatteryVoltageLevelReached": (
+        #                 (msgBody["FlagsAndMsbVoltageIn"] & 128) >> 7
+        #         ),
+        #         "Flag/OverTemperature": (
+        #                     (msgBody["FlagsAndMsbVoltageIn"] & 64) >> 6),
+        #         "Flag/NoCharge": ((msgBody["FlagsAndMsbVoltageIn"] & 32) >> 5),
+        #         "Flag/UnderVoltage": (
+        #                     (msgBody["FlagsAndMsbVoltageIn"] & 16) >> 4),
+        #     }
+        #     msgBody = newMsgBody
+        #     logger.info("MPPT Decode: " + str(msgBody))
         return msgBody
 
     @staticmethod

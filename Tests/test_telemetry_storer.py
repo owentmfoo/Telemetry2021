@@ -76,10 +76,10 @@ def test_store_data_mppt(monkeypatch, tmp_path, run_in_receiver):
     from Receiver.telemetryStorer import storeData
     # act
     storeData(msgs[20])  # Javed
-    mock_store_function.assert_called_with('Javed', 'Mppt', {'VoltageIn': 508, 'CurrentIn': 121, 'VoltageOut': 612, 'AmbientTemperature': 20, 'Flag/BatteryVoltageLevelReached': 0, 'Flag/OverTemperature': 0, 'Flag/NoCharge': 0, 'Flag/UnderVoltage': 0}, datetime(1970, 1, 1, 3, 0, 19, tzinfo=timezone.utc), True)
+    mock_store_function.assert_called_with('Javed', 'Mppt', {'VoltageIn': 508, 'CurrentIn': 121, 'VoltageOut': 612, 'AmbientTemperature': 20, 'BatteryVoltageLevelReached': 0, 'OverTemperature': 0, 'NoCharge': 0, 'UnderVoltage': 0}, datetime(1970, 1, 1, 3, 0, 19, tzinfo=timezone.utc), True)
 
     storeData(msgs[25])  # Woof
-    mock_store_function.assert_called_with('Woof', 'Mppt', {'VoltageIn': 450, 'CurrentIn': 121, 'VoltageOut': 614, 'AmbientTemperature': 20, 'Flag/BatteryVoltageLevelReached': 0, 'Flag/OverTemperature': 0, 'Flag/NoCharge': 0, 'Flag/UnderVoltage': 0}, datetime(1970, 1, 1, 3, 0, 24, tzinfo=timezone.utc), True)
+    mock_store_function.assert_called_with('Woof', 'Mppt', {'VoltageIn': 450, 'CurrentIn': 121, 'VoltageOut': 614, 'AmbientTemperature': 20, 'BatteryVoltageLevelReached': 0, 'OverTemperature': 0, 'NoCharge': 0, 'UnderVoltage': 0}, datetime(1970, 1, 1, 3, 0, 24, tzinfo=timezone.utc), True)
 
     storeData(msgs[100])  # crc fail
     mock_store_function.assert_called_with('CRCFail', '', {'Data': b'010007720701d4006d02680f8e72'}, datetime(1970, 1, 1, 3, 0), False)

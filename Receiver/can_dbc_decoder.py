@@ -1,6 +1,10 @@
+from pathlib import PurePath
+
 import cantools.database
 
-tritium_dbc = cantools.database.load_file("../dbc/wavesculptor_22.dbc")
-
+dbc_folder = PurePath("../dbc/")
+database = cantools.database.Database()
+database.add_dbc_file(dbc_folder/"wavesculptor_22.dbc")
+database.add_dbc_file(dbc_folder/"MPPT.dbc")
 def decode_can_msg(canId, msgBytes)->dict:
-    return tritium_dbc.decode_message(canId, msgBytes)
+    return database.decode_message(canId, msgBytes)
