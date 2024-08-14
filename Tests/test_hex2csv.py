@@ -26,8 +26,9 @@ def test_hex2csv(monkeypatch, tmp_path, run_in_receiver):
         with open("../Tests/data/NRT.csv") as f2:
             f1lines = f1.readlines()
             f2lines = f2.readlines()
+            for i, (line1, line2) in enumerate(zip(f1lines, f2lines)):
+                assert line1 == line2, f"Difference found at line {i}: {line1} != {line2}"
             assert f1lines == f2lines
-
 
 def test_hex2csv2(monkeypatch, tmp_path, run_in_receiver):
     # arrange
@@ -50,4 +51,6 @@ def test_hex2csv2(monkeypatch, tmp_path, run_in_receiver):
         with open("../Tests/data/MPPT.csv") as f2:
             f1lines = f1.readlines()
             f2lines = f2.readlines()
+            for i, (line1, line2) in enumerate(zip(f1lines, f2lines)):
+                assert line1 == line2, f"Difference found at line {i}: {line1} != {line2}"
             assert f1lines == f2lines
