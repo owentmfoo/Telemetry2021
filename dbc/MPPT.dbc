@@ -56,9 +56,11 @@ BO_ 1906 Woof: 7 Vector__XXX
  SG_ UnderVoltage : 5|1@0+ (1,0) [0|0] "" Vector__XXX
  SG_ BatteryVoltageLevelReached : 4|1@0+ (1,0) [0|0] "" Vector__XXX
 
-BO_ 1809 MPPT_poll_javed: 0 Vector__XXX
+BO_ 1809 MPPT_poll_javed: 1 Vector__XXX
+ SG_ Blank : 0|8@1- (1,0) [0|0] "" Vector__XXX
 
-BO_ 1810 MPPT_poll_woof: 0 Vector__XXX
+BO_ 1810 MPPT_poll_woof: 1 Vector__XXX
+ SG_ Blank : 0|8@1- (1,0) [0|0] "" Vector__XXX
 
 
 

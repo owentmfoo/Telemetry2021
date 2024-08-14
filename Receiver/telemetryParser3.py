@@ -153,7 +153,8 @@ class TelemetryParser:
         msgBody = self.decode_can_msg(canId, msgDLC, msgData,
                                       msgSource, recievedMillisTime)
         if msgSource in ["Tritium",
-                         "Mppt"]:  # TODO: drop in dbc decoded message
+                         "Mppt",
+                         "Telemetry"]:  # TODO: drop in dbc decoded message
             msgBody = decode_can_msg(canId, msgBytes[3: (3 + msgDLC)])
         return msgItem, msgSource, msgBody, msgTime, msgCRCStatus
 
