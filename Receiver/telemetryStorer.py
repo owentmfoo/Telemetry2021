@@ -12,7 +12,7 @@ from openpyxl import load_workbook, Workbook
 from os.path import exists as fileExists
 
 from influxdb import InfluxDBClient
-from Receiver.telemetryParser3 import TelemetryParser
+from Receiver.telemetry_parser3 import TelemetryParser
 from Receiver.receiver_config import ifCredentials
 
 telemetry_parser = TelemetryParser()

@@ -18,11 +18,11 @@ def test_store_data_nrt(monkeypatch, tmp_path, run_in_receiver):
     monkeypatch.setattr('Receiver.telemetryStorer.storeFunctionList', [mock_store_function])
 
 
-    from Receiver.telemetryParser3 import TelemetryParser
+    from Receiver.telemetry_parser3 import TelemetryParser
     telemetry_parser = TelemetryParser()
-    telemetry_parser.lastGPSTime = datetime(year=1970, month=1, day=1, hour=3,
-                                            minute=0,
-                                            second=0, tzinfo=timezone.utc)
+    telemetry_parser.last_gps_time = datetime(year=1970, month=1, day=1, hour=3,
+                                              minute=0,
+                                              second=0, tzinfo=timezone.utc)
     monkeypatch.setattr("Receiver.telemetryStorer.telemetry_parser",
                         telemetry_parser)
 
@@ -60,11 +60,11 @@ def test_store_data_mppt(monkeypatch, tmp_path, run_in_receiver):
     monkeypatch.setattr('Receiver.telemetryStorer.storeFunctionList', [mock_store_function])
 
 
-    from Receiver.telemetryParser3 import TelemetryParser
+    from Receiver.telemetry_parser3 import TelemetryParser
     telemetry_parser = TelemetryParser()
-    telemetry_parser.lastGPSTime = datetime(year=1970, month=1, day=1, hour=3,
-                                            minute=0,
-                                            second=0, tzinfo=timezone.utc)
+    telemetry_parser.last_gps_time = datetime(year=1970, month=1, day=1, hour=3,
+                                              minute=0,
+                                              second=0, tzinfo=timezone.utc)
     monkeypatch.setattr("Receiver.telemetryStorer.telemetry_parser",
                         telemetry_parser)
     hex_file = "../Tests/data/MPPT.BIN"

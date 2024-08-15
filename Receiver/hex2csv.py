@@ -15,7 +15,7 @@ import numpy as np
 import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
-from Receiver.telemetryParser3 import TelemetryParser
+from Receiver.telemetry_parser3 import TelemetryParser
 
 mode = "a"
 def hex2csv(hex_file, output_csv="output.csv", csv_write_mode=mode, telemetry_parser=TelemetryParser()) -> None:
