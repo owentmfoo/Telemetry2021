@@ -33,10 +33,10 @@ NS_ :
 
 BS_:
 
-BU_: Javed Woof
+BU_: Javed Woof Telemetry
 
 
-BO_ 1905 Javed: 7 Vector__XXX
+BO_ 1905 Javed: 7 Javed
  SG_ VoltageIn : 1|10@0+ (1,0) [0|0] "" Vector__XXX
  SG_ CurrentIn : 17|10@0+ (1,0) [0|0] "" Vector__XXX
  SG_ VoltageOut : 33|10@0+ (1,0) [0|0] "" Vector__XXX
@@ -46,7 +46,7 @@ BO_ 1905 Javed: 7 Vector__XXX
  SG_ UnderVoltage : 5|1@0+ (1,0) [0|0] "" Vector__XXX
  SG_ BatteryVoltageLevelReached : 4|1@0+ (1,0) [0|0] "" Vector__XXX
 
-BO_ 1906 Woof: 7 Vector__XXX
+BO_ 1906 Woof: 7 Woof
  SG_ VoltageIn : 1|10@0+ (1,0) [0|0] "" Vector__XXX
  SG_ CurrentIn : 17|10@0+ (1,0) [0|0] "" Vector__XXX
  SG_ VoltageOut : 33|10@0+ (1,0) [0|0] "" Vector__XXX
@@ -56,10 +56,10 @@ BO_ 1906 Woof: 7 Vector__XXX
  SG_ UnderVoltage : 5|1@0+ (1,0) [0|0] "" Vector__XXX
  SG_ BatteryVoltageLevelReached : 4|1@0+ (1,0) [0|0] "" Vector__XXX
 
-BO_ 1809 MPPT_poll_javed: 1 Vector__XXX
+BO_ 1809 MpptPollJaved: 1 Telemetry
  SG_ Blank : 0|8@1- (1,0) [0|0] "" Vector__XXX
 
-BO_ 1810 MPPT_poll_woof: 1 Vector__XXX
+BO_ 1810 MpptPollWoof: 1 Telemetry
  SG_ Blank : 0|8@1- (1,0) [0|0] "" Vector__XXX
 
 

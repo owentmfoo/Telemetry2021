@@ -1,83 +1,25 @@
-import sys
-
-from Receiver.can_dbc_decoder import DbcDecoder
-
-if __name__ == "__main__":  # Warn if trying to run this as a script
-    print("\n**********************************************")
-    print("   This is not meant to be run as a main script")
-    print("   Run log-to-data.py or live-telem.py instead")
-    print("**********************************************\n")
-    sys.exit(4)
-
 from datetime import datetime, timedelta, timezone
-from openpyxl import load_workbook
-from os.path import exists as fileExists
-import struct
 from crccheck.crc import Crc16Modbus
 from binascii import hexlify
-from functools import lru_cache, cache
 
 import numpy as np
 from numpy import uint32
 import logging
-from Receiver.receiver_config import configFile
+from Receiver.can_dbc_decoder import DbcDecoder
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
 
 class TelemetryParser:
-    def __init__(self, config_file=configFile):
+    def __init__(self):
         self.lastGPSTime: datetime = datetime.now(
             timezone.utc
         )  # use this by default until the pi rtc goes out of sync (i.e the UPS fails). It can be resynced if reconnected to internet.
         self.timeFetched: uint32 = uint32(
             0
         )  # Time since time variables were last updated in seconds #round(time.time() * 1000). Using numpy to force unsigned and integer overflows are needed
-        self.rowForCurrentMessage = dict()
-        self.config_file = config_file
         self.decoder = DbcDecoder()
-
-    @property
-    @cache
-    def config(self):
-        config = dict()
-
-        # CONFIG INIT REGION
-        # get config from Excel config workbook. Check 'CAN data' sheet exists
-
-        config_file = self.config_file
-        if not fileExists(config_file):
-            logger.info("Config file " + config_file + " does not exist")
-            sys.exit(5)
-
-        logger.debug("Loading config (this process takes a while)")
-        configBook = load_workbook(
-            config_file, read_only=True, keep_vba=True, data_only=True
-        )  # Config has VBA macros. Also, data_only=True only works if formulae were evaluated. This is fine since excel does this and openpyxl does not modify config
-        if not "CAN Data" in configBook.sheetnames:  # check CAN data worksheet exists
-            logger.warning(
-                "Missing 'CAN Data' worksheet in workbook. Is the config file correct?"
-            )
-            logger.warning(
-                "Worksheets available: " + str(configBook.sheetnames))
-            sys.exit(1)
-        configSheet = configBook["CAN Data"]
-        configColumns = {cell.value: i + 1 for i, cell in
-                         enumerate(configSheet[1])}
-        for row in configSheet.iter_rows(min_row=2):
-            if row[0].value == "END":
-                break
-            rowAsDict = {
-                columnName: row[configColumns[columnName] - 1].value
-                for columnName in configColumns
-            }
-            config[row[configColumns["CAN_ID (dec)"] - 1].value] = rowAsDict
-        configBook.close()
-        # print config
-        for address, packet_config in config.items():
-            logger.info("{}\t{}".format(hex(address), packet_config))
-        return config
 
     def __get_time(self, recievedMillis: uint32) -> datetime:
         millisDelta: uint32 = recievedMillis - self.timeFetched
@@ -94,15 +36,6 @@ class TelemetryParser:
                 "%Y-%m-%d %H:%M:%S.%f")
         )
         return currentTime
-
-    def __from_config(self, dictKey):
-        if dictKey in self.rowForCurrentMessage:
-            return self.rowForCurrentMessage[dictKey]
-        else:
-            logger.info(
-                "Column '" + dictKey + "' missing in 'CAN Data' worksheet in config"
-            )
-            sys.exit(2)
 
     # TRANSLATE MESSAGE REGION
     def translate_msg(
@@ -136,18 +69,9 @@ class TelemetryParser:
 
         # do a lookup in spreadsheet using can id to work out can message type
         canId = msgBytes[0] << 8 | msgBytes[1]
-        if canId in self.config.keys():
-            self.rowForCurrentMessage = self.config[canId]
-        else:
-            logger.exception(
-                "Error. Could not config entry for id " + str(canId))
-            return "ID UNRECOGNISED", "ERROR", {
-                "ID": canId}, msgTime, msgCRCStatus
 
         # Translate
-        msgItem: str = self.__from_config("ItemCC")
-        msgSource: str = self.__from_config("SourceCC")
-        msgBody = self.decoder.decode_can_msg(canId, msgBytes[3:])
+        msgItem,msgSource,msgBody = self.decoder.decode_can_msg(canId, msgBytes[3:])
         # if canId == 0x0F6 and msgBody["GpsDay"] != 0:
         if canId == 24 and msgBody["GpsDay"] != 0:
             self.update_last_gps_time(msgBody,recievedMillisTime)

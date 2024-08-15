@@ -33,17 +33,17 @@ NS_ :
 
 BS_:
 
-BU_: Tritium WaveSculptor20_Right DriverControls_Left DriverControls_Right
+BU_: Tritium WaveSculptor20_Right DriverControls DriverControls_Right
 
 
 BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
  SG_ Reserved2 : 32|32@1- (1,0) [0|0] "C" Vector__XXX
 
-BO_ 1536 Left_IDInfo: 8 Tritium
+BO_ 1536 IdentificationInfo: 8 Tritium
  SG_ TritiumId : 0|32@1+ (1,0) [0|0] "" Vector__XXX
  SG_ SerialNumber : 32|32@1+ (1,0) [0|0] "" Vector__XXX
 
-BO_ 1537 Left_Status: 8 Tritium
+BO_ 1537 StausInformation: 8 Tritium
  SG_ ActiveMotor : 32|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ ErrorFlags : 16|8@1+ (1,0) [0|0] "" Vector__XXX
  SG_ LimitFlags : 0|8@1+ (1,0) [0|0] "" Vector__XXX
@@ -67,54 +67,54 @@ BO_ 257 Left_Status: 8 Tritium
  SG_ LimitFlagBusVoltageLowerLimit : 5|1@1+ (1,0) [0|0] "" Vector__XXX
  SG_ LimitFlagHeatsinkTemperature : 6|1@1+ (1,0) [0|0] "" Vector__XXX
 
-BO_ 1538 Left_BusMeasurement: 8 Tritium
+BO_ 1538 BusMeasurement: 8 Tritium
  SG_ BusVoltage : 0|32@1- (1,0) [0|0] "V" Vector__XXX
  SG_ BusCurrent : 32|32@1- (1,0) [0|0] "A" Vector__XXX
 
-BO_ 1539 Left_VelocityMeasurement: 8 Tritium
+BO_ 1539 Velocity: 8 Tritium
  SG_ MotorVelocity : 0|32@1- (1,0) [0|0] "rpm" Vector__XXX
  SG_ VehicleVelocity : 32|32@1- (1,0) [0|0] "m/s" Vector__XXX
 
-BO_ 1540 Left_PhaseCurrentMeasurement: 8 Tritium
+BO_ 1540 PhaseCurrent: 8 Tritium
  SG_ PhaseBCurrent : 0|32@1- (1,0) [0|0] "A_rms" Vector__XXX
  SG_ PhaseCCurrent : 32|32@1- (1,0) [0|0] "A_rms" Vector__XXX
 
-BO_ 1541 Left_MotorVoltageVectorMeasurement: 8 Tritium
+BO_ 1541 MotorVoltageVector: 8 Tritium
  SG_ VectVoltImag : 0|32@1- (1,0) [0|0] "V" Vector__XXX
  SG_ VectVoltReal : 32|32@1- (1,0) [0|0] "V" Vector__XXX
 
-BO_ 1542 Left_MotorCurrentVectorMeasurement: 8 Tritium
+BO_ 1542 MotorCurrentVector: 8 Tritium
  SG_ VectCurrImag : 0|32@1- (1,0) [0|0] "A" Vector__XXX
  SG_ VectCurrReal : 32|32@1- (1,0) [0|0] "A" Vector__XXX
 
-BO_ 1543 Left_MotorBackEmfMeasurementPrediction: 8 Tritium
+BO_ 1543 MotorBackemfVector: 8 Tritium
  SG_ PeakBackEmfPhaseToNeutral : 0|32@1- (1,0) [0|0] "V" Vector__XXX
  SG_ BackEmfD : 32|32@1- (1,0) [0|0] "V" Vector__XXX
 
-BO_ 1544 Left_VoltageRail15V1V65Measurement: 8 Tritium
+BO_ 1544 Rail_15V: 8 Tritium
  SG_ Reserved : 0|32@1- (1,0) [0|0] "V" Vector__XXX
  SG_ FifteenVSupply : 32|32@1- (1,0) [0|0] "V" Vector__XXX
 
-BO_ 1545 Left_VoltageRail2V51V2Measurement: 8 Tritium
+BO_ 1545 Rail_3_3VAnd1_9V: 8 Tritium
  SG_ ThreeThreeVSupply : 32|32@1- (1,0) [0|0] "V" Vector__XXX
  SG_ OneNineVSupply : 0|32@1- (1,0) [0|0] "V" Vector__XXX
 
-BO_ 1546 Left_FanSpeedMeasurement: 8 Tritium
+BO_ 1546 Reserved1: 8 Tritium
  SG_ VoltagePercentage : 0|32@1- (1,0) [0|0] "%" Vector__XXX
  SG_ FanSpeed : 32|32@1- (1,0) [0|0] "rpm" Vector__XXX
 
-BO_ 1547 Left_SinkMotorTempMeasurement: 8 Tritium
+BO_ 1547 SinkMotorTemperature: 8 Tritium
  SG_ MotorTemp : 0|32@1- (1,0) [0|0] "C" Vector__XXX
  SG_ HeatSinkTemp : 32|32@1- (1,0) [0|0] "C" Vector__XXX
 
-BO_ 1548 Left_AirInCpuTempMeasurement: 8 Tritium
+BO_ 1548 DspBoardTemperature: 8 Tritium
  SG_ DspBoardTemp : 0|32@1- (1,0) [0|0] "C" Vector__XXX
  SG_ Reserved : 32|32@1- (1,0) [0|0] "C" Vector__XXX
 
-BO_ 1549 Left_AirOutCapTempMeasurement: 8 Tritium
+BO_ 1549 Reserved: 8 Tritium
  SG_ Reserved : 32|32@1- (1,0) [0|0] "C" Vector__XXX
 
-BO_ 1550 Left_OdometerBusAhMeasurement: 8 Tritium
+BO_ 1550 OdoBusAmphours: 8 Tritium
  SG_ Odometer : 0|32@1- (1,0) [0|0] "m" Vector__XXX
  SG_ DcBusAmpHours : 32|32@1- (1,0) [0|0] "Ah" Vector__XXX
 
@@ -122,7 +122,7 @@ BO_ 128 Right_IDInfo: 8 WaveSculptor20_Right
  SG_ TritiumID : 0|32@1+ (1,0) [0|0] "" Vector__XXX
  SG_ SerialNumber : 32|32@1+ (1,0) [0|0] "" Vector__XXX
 
-BO_ 1559 Left_SlipSpeedMeasurement: 8 Vector__XXX
+BO_ 1559 SlipSpeedMeasurement: 8 Tritium
  SG_ Reserved : 0|32@1- (1,0) [0|0] "C" Vector__XXX
  SG_ SlipSpeed : 32|32@1- (1,0) [0|0] "Hz" Vector__XXX
 
@@ -195,15 +195,15 @@ BO_ 142 Right_OdometerBusAhMeasurement: 8 WaveSculptor20_Right
  SG_ Odometer : 0|32@1- (1,0) [0|0] "m" Vector__XXX
  SG_ DCBus : 32|32@1- (1,0) [0|0] "Ah" Vector__XXX
 
-BO_ 1281 Left_DriveCommand: 8 DriverControls_Left
+BO_ 1281 SpeedValCurrVal: 8 DriverControls
  SG_ DriverSetSpeed : 0|32@1- (1,0) [0|0] "m/s" Vector__XXX
  SG_ DriverSetCurrent : 32|32@1- (1,0) [0|0] "%" Vector__XXX
 
-BO_ 1282 Left_MotorPowerCommand: 8 DriverControls_Left
+BO_ 1282 Maxbuscurrent: 8 DriverControls
  SG_ MaxBusCurrent : 32|32@1- (1,0) [0|0] "%" Vector__XXX
  SG_ Zero : 0|32@1- (1,0) [0|0] "" Vector__XXX
 
-BO_ 35 Left_ResetCommand: 8 DriverControls_Left
+BO_ 35 Left_ResetCommand: 8 DriverControls
 
 BO_ 65 Right_DriveCommand: 8 DriverControls_Right
  SG_ MotorCurrent : 32|32@1- (1,0) [0|0] "%" Vector__XXX
@@ -218,7 +218,7 @@ BO_ 67 Right_ResetCommand: 8 DriverControls_Right
 
 CM_ BU_ Tritium "Left motor controller (base address 0x300)";
 CM_ BU_ WaveSculptor20_Right "Right motor controller (base address 0x400)";
-CM_ BU_ DriverControls_Left "Left driver controls (base address 0x100)";
+CM_ BU_ DriverControls "Left driver controls (base address 0x100)";
 CM_ BU_ DriverControls_Right "Right driver controls (base address 0x200)";
 CM_ SG_ 3221225472 Reserved2 "Ambient air temperature at the ventilation outlet of the controller. Unused in 20kW WaveSculptor.";
 CM_ BO_ 1536 "";
