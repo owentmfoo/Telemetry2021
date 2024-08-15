@@ -195,12 +195,13 @@ BO_ 142 Right_OdometerBusAhMeasurement: 8 WaveSculptor20_Right
  SG_ Odometer : 0|32@1- (1,0) [0|0] "m" Vector__XXX
  SG_ DCBus : 32|32@1- (1,0) [0|0] "Ah" Vector__XXX
 
-BO_ 33 Left_DriveCommand: 8 DriverControls_Left
- SG_ MotorVelocity : 0|32@1- (1,0) [0|0] "m/s" Vector__XXX
- SG_ MotorCurrent : 32|32@1- (1,0) [0|0] "%" Vector__XXX
+BO_ 1281 Left_DriveCommand: 8 DriverControls_Left
+ SG_ DriverSetSpeed : 0|32@1- (1,0) [0|0] "m/s" Vector__XXX
+ SG_ DriverSetCurrent : 32|32@1- (1,0) [0|0] "%" Vector__XXX
 
-BO_ 34 Left_MotorPowerCommand: 8 DriverControls_Left
- SG_ BusCurrent : 32|32@1- (1,0) [0|0] "%" Vector__XXX
+BO_ 1282 Left_MotorPowerCommand: 8 DriverControls_Left
+ SG_ MaxBusCurrent : 32|32@1- (1,0) [0|0] "%" Vector__XXX
+ SG_ Zero : 0|32@1- (1,0) [0|0] "" Vector__XXX
 
 BO_ 35 Left_ResetCommand: 8 DriverControls_Left
 
@@ -314,9 +315,9 @@ CM_ SG_ 141 CapacitorTemp "Ambient temperature of the internal bus capacitors. U
 CM_ SG_ 141 AirOutTemp "Ambient air temperature at the ventilation outlet of the controller. Unused in 20kW WaveSculptor.";
 CM_ SG_ 142 Odometer "The distance the vehicle has travelled since reset";
 CM_ SG_ 142 DCBus "The charge flow into the controller bus voltage from the time of reset.";
-CM_ SG_ 33 MotorVelocity "Desired motor velocity set point in metres/second";
-CM_ SG_ 33 MotorCurrent "Desired motor current set point as a percentage of maximum current setting.";
-CM_ SG_ 34 BusCurrent "Desired set point of current drawn from the bus by the controller as a percentage of absolute bus current limit.";
+CM_ SG_ 1281 DriverSetSpeed "Desired motor velocity set point in metres/second";
+CM_ SG_ 1281 DriverSetCurrent "Desired motor current set point as a percentage of maximum current setting.";
+CM_ SG_ 1282 MaxBusCurrent "Desired set point of current drawn from the bus by the controller as a percentage of absolute bus current limit.";
 CM_ SG_ 65 MotorCurrent "Desired motor current set point as a percentage of maximum current setting.";
 CM_ SG_ 65 MotorVelocity "Desired motor velocity set point in metres/second.";
 CM_ SG_ 66 BusCurrent "Desired set point of current drawn from the bus by the controller as a percentage of absolute bus current limit.";
@@ -407,9 +408,10 @@ SIG_VALTYPE_ 141 CapacitorTemp : 1;
 SIG_VALTYPE_ 141 AirOutTemp : 1;
 SIG_VALTYPE_ 142 Odometer : 1;
 SIG_VALTYPE_ 142 DCBus : 1;
-SIG_VALTYPE_ 33 MotorVelocity : 1;
-SIG_VALTYPE_ 33 MotorCurrent : 1;
-SIG_VALTYPE_ 34 BusCurrent : 1;
+SIG_VALTYPE_ 1281 DriverSetSpeed : 1;
+SIG_VALTYPE_ 1281 DriverSetCurrent : 1;
+SIG_VALTYPE_ 1282 MaxBusCurrent : 1;
+SIG_VALTYPE_ 1282 Zero : 1;
 SIG_VALTYPE_ 65 MotorCurrent : 1;
 SIG_VALTYPE_ 65 MotorVelocity : 1;
 SIG_VALTYPE_ 66 BusCurrent : 1;

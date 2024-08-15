@@ -7,6 +7,7 @@ database = cantools.database.Database()
 database.add_dbc_file(dbc_folder/"wavesculptor_22.dbc")
 database.add_dbc_file(dbc_folder/"MPPT.dbc")
 database.add_dbc_file(dbc_folder/"Telemetry.dbc")
+database.add_dbc_file(dbc_folder/"Orion.dbc")
 
 
 def decode_can_msg(canId, msgBytes) -> dict:
