@@ -146,84 +146,34 @@ class TelemetryParser:
         # Translate
         msgItem: str = self.__from_config("ItemCC")
         msgSource: str = self.__from_config("SourceCC")
-        msgDLC = self.__from_config("DLC")
-        msgData = struct.unpack(
-            self.__from_config("struct unpack code"), msgBytes[3: (3 + msgDLC)]
-        )
-        msgBody = self.decode_can_msg(canId, msgDLC, msgData,
-                                      msgSource, recievedMillisTime)
-        msgBody = str(canId)
-        if msgSource in ["Tritium", # TODO: drop in dbc decoded message
-                         "Mppt",
-                         "Telemetry",
-                         "DriverControls",
-                         "Orion"]:
-            msgBody = decode_can_msg(canId, msgBytes[3: (3 + msgDLC)])
+        msgBody = decode_can_msg(canId, msgBytes[3:])
+        # if canId == 0x0F6 and msgBody["GpsDay"] != 0:
+        if canId == 24 and msgBody["GpsDay"] != 0:
+            self.update_last_gps_time(msgBody,recievedMillisTime)
         return msgItem, msgSource, msgBody, msgTime, msgCRCStatus
 
-    def decode_can_msg(self, canId, msgDLC, msgData, msgSource,
-                       recievedMillisTime):
-        msgBody = dict()
-        dataIterator = 0
-        for i in range(msgDLC):
-            fieldValue = self.__from_config("BYTE_" + str(i) + "CC")
-            if not (
-                    fieldValue == "-"
-            ):  # if byte labelled '-', then is part of a value that spans multiple bytes or is not being used at all
-                msgBody.update({fieldValue: msgData[dataIterator]})
-                dataIterator = dataIterator + 1
-        logger.debug(
-            f"{msgSource}: {msgBody}"
-        )  # translated data without any extra decoding
-        # if GPS time and fix message, update time
-        if (
-                canId == 24 and msgData[4] != 0
-        ):  # can id for GPS Time and Fix message (hex: 0x0F6)
-            logger.debug("Updating GPS time...")
-            try:
-                self.lastGPSTime = datetime(
-                    hour=msgData[0],
-                    minute=msgData[1],
-                    second=msgData[2],
-                    day=msgData[3],
-                    month=msgData[4],
-                    year=2000 + msgData[5],
-                    tzinfo=timezone.utc,
-                )  # msgData only contains last 2 digits of year so have to add 2000
-                self.timeFetched = (
-                    recievedMillisTime  # update when data was last fetched
-                )
-                logger.debug(
-                    "GPS time is now: " + self.lastGPSTime.strftime(
-                        "%Y-%m-%d %H:%M:%S")
-                )
-            except ValueError:
-                logger.exception("Invalid values for GPS time, %s",
-                                 str(msgData))
-        # # mppt
-        # if canId == 1905 or canId == 1906:
-        #     logger.info("Decoding MPPT")
-        #     newMsgBody: dict = {
-        #         "VoltageIn": ((msgBody["FlagsAndMsbVoltageIn"] & 3) << 8)
-        #                      | msgBody["LsbVoltageIn"],
-        #         # bitwise and with 3 because cannot confirm if other bits (marked 'x') in byte are 0
-        #         "CurrentIn": ((msgBody["MsbCurrentIn"] & 3) << 8)
-        #                      | msgBody["LsbCurrentIn"],
-        #         "VoltageOut": ((msgBody["MsbVoltageOut"] & 3) << 8)
-        #                       | msgBody["LsbVoltageOut"],
-        #         "AmbientTemperature": msgBody["AmbientTemperature"],
-        #         "Flag/BatteryVoltageLevelReached": (
-        #                 (msgBody["FlagsAndMsbVoltageIn"] & 128) >> 7
-        #         ),
-        #         "Flag/OverTemperature": (
-        #                     (msgBody["FlagsAndMsbVoltageIn"] & 64) >> 6),
-        #         "Flag/NoCharge": ((msgBody["FlagsAndMsbVoltageIn"] & 32) >> 5),
-        #         "Flag/UnderVoltage": (
-        #                     (msgBody["FlagsAndMsbVoltageIn"] & 16) >> 4),
-        #     }
-        #     msgBody = newMsgBody
-        #     logger.info("MPPT Decode: " + str(msgBody))
-        return msgBody
+    def update_last_gps_time(self, msgBody, recievedMillisTime):
+        logger.debug("Updating GPS time...")
+        try:
+            self.lastGPSTime = datetime(
+                hour=msgBody["GpsHour"],
+                minute=msgBody["GpsMinute"],
+                second=msgBody["GpsSeconds"],
+                day=msgBody["GpsDay"],
+                month=msgBody["GpsMonth"],
+                year=2000 + msgBody["GpsYear"],
+                tzinfo=timezone.utc,
+            )  # msgData only contains last 2 digits of year so have to add 2000
+            self.timeFetched = (
+                recievedMillisTime  # update when data was last fetched
+            )
+            logger.debug(
+                "GPS time is now: " + self.lastGPSTime.strftime(
+                    "%Y-%m-%d %H:%M:%S")
+            )
+        except ValueError:
+            logger.exception("Invalid values for GPS time, %s",
+                             str(msgBody))
 
     @staticmethod
     def __check_crc(msgBytes: bytearray) -> bool:
