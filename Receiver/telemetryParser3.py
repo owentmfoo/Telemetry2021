@@ -1,6 +1,6 @@
 import sys
 
-from Receiver.can_dbc_decoder import decode_can_msg
+from Receiver.can_dbc_decoder import DbcDecoder
 
 if __name__ == "__main__":  # Warn if trying to run this as a script
     print("\n**********************************************")
@@ -36,6 +36,7 @@ class TelemetryParser:
         )  # Time since time variables were last updated in seconds #round(time.time() * 1000). Using numpy to force unsigned and integer overflows are needed
         self.rowForCurrentMessage = dict()
         self.config_file = config_file
+        self.decoder = DbcDecoder()
 
     @property
     @cache
@@ -146,7 +147,7 @@ class TelemetryParser:
         # Translate
         msgItem: str = self.__from_config("ItemCC")
         msgSource: str = self.__from_config("SourceCC")
-        msgBody = decode_can_msg(canId, msgBytes[3:])
+        msgBody = self.decoder.decode_can_msg(canId, msgBytes[3:])
         # if canId == 0x0F6 and msgBody["GpsDay"] != 0:
         if canId == 24 and msgBody["GpsDay"] != 0:
             self.update_last_gps_time(msgBody,recievedMillisTime)
