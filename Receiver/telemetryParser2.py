@@ -140,7 +140,7 @@ def translateMsg(msgBytesAndTime: bytearray) -> tuple[
         f'{msgSource}: {msgBody}')  # translated data without any extra decoding
 
     # if GPS time and fix message, update time
-    if canId == 24 and msgData[4] != 0:  # can id for GPS Time and Fix message (hex: 0x0F6)
+    if canId == 0x0F6 and msgData[4] != 0:  # can id for GPS Time and Fix message (hex: 0x0F6)
         logger.debug("Updating GPS time...")
         global lastGPSTime
         global timeFetched

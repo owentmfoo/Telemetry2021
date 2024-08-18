@@ -72,8 +72,8 @@ class TelemetryParser:
         message_name, message_source, decoded_message = self.decoder.decode_can_msg(
             can_id, can_msg_bytes[3:]
         )
-        # if can_id == 0x0F6 and decoded_message["GpsDay"] != 0:
-        if can_id == 24 and decoded_message["GpsDay"] != 0:
+
+        if can_id == 0x0F6 and decoded_message["GpsDay"] != 0:
             self.update_last_gps_time(decoded_message, received_millis_time)
         return message_name, message_source, decoded_message, msg_time, msg_crc_status
 
