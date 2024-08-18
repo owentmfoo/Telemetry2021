@@ -2,7 +2,7 @@ from datetime import timezone, datetime
 from unittest.mock import MagicMock
 
 import pytest
-
+from fixtures import patch_receiver_config
 
 
 @pytest.fixture(autouse=True)

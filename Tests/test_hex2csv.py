@@ -1,18 +1,10 @@
 from datetime import timezone, datetime
 import pytest
+from fixtures import patch_receiver_config,run_in_receiver
 
 
-@pytest.fixture(autouse=True)
-def run_in_receiver(request, monkeypatch):
-    monkeypatch.chdir(request.config.rootdir + "/Receiver")
-
-def test_hex2csv(monkeypatch, tmp_path, run_in_receiver):
+def test_hex2csv(monkeypatch, tmp_path):
     # arrange
-    monkeypatch.setattr("Receiver.receiver_config.configFile",
-                        "../Tests/data/CANBusConfig.xlsm")
-    monkeypatch.setattr("Receiver.telemetryParser2.lastGPSTime",
-                        datetime(year=1970, month=1, day=1, hour=3, minute=0,
-                                 second=0, tzinfo=timezone.utc))
     from Receiver.hex2csv import hex2csv
     from Receiver.telemetry_parser3 import TelemetryParser
     tp = TelemetryParser()
@@ -31,13 +23,9 @@ def test_hex2csv(monkeypatch, tmp_path, run_in_receiver):
                 assert line1 == line2, f"Difference found at line {i}: {line1} != {line2}"
             assert f1lines == f2lines
 
-def test_hex2csv2(monkeypatch, tmp_path, run_in_receiver):
+
+def test_hex2csv2(monkeypatch, tmp_path):
     # arrange
-    monkeypatch.setattr("Receiver.receiver_config.configFile",
-                        "../Tests/data/CANBusConfig.xlsm")
-    monkeypatch.setattr("Receiver.telemetryParser2.lastGPSTime",
-                        datetime(year=1970, month=1, day=1, hour=3, minute=0,
-                                 second=0, tzinfo=timezone.utc))
     from Receiver.hex2csv import hex2csv
     from Receiver.telemetry_parser3 import TelemetryParser
     tp = TelemetryParser()
