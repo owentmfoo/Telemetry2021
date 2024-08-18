@@ -22,9 +22,9 @@ class TelemetryParser:
         # overflows are needed.
         self.time_fetched: uint32 = uint32(0)
 
-    def __get_time(self, recieved_millis: uint32) -> datetime:
-        millis_delta: uint32 = recieved_millis - self.time_fetched
-        if recieved_millis < self.time_fetched:
+    def __get_time(self, received_millis: uint32) -> datetime:
+        millis_delta: uint32 = received_millis - self.time_fetched
+        if received_millis < self.time_fetched:
             millis_delta = (
                 millis_delta + 2**32
             )  # Unsign the delta. This method should work as long as the GPS update is not older than 2^32-1 milliseconds
@@ -45,7 +45,7 @@ class TelemetryParser:
     ]:  # Format: TI0 TI1 TI2 TI3 ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1 (NOTE that end of frame marker is not included)
         logger.debug("Translating -> %s", msg_bytes_and_time)
 
-        msg_bytes = msg_bytes_and_time[4:]
+        can_msg_bytes = msg_bytes_and_time[4:]
 
         # CRC check
         msg_crc_status = self.__check_crc(msg_bytes_and_time)
@@ -59,22 +59,22 @@ class TelemetryParser:
                 False,
             )
 
-        # convert recieved millis delta time
-        recieved_millis_time = np.frombuffer(
-            msg_bytes_and_time[0:4], dtype=uint32
-        )  # int.from_bytes(msgBytesAndTime[0:3], byteorder="little")
-        msg_time = self.__get_time(recieved_millis_time)
+        # convert received millis delta time
+        received_millis_time = np.frombuffer(
+            msg_bytes_and_time[:4], dtype=uint32
+        )[0]
+        msg_time = self.__get_time(received_millis_time)
 
         # do a lookup in spreadsheet using can id to work out can message type
-        can_id = msg_bytes[0] << 8 | msg_bytes[1]
+        can_id = can_msg_bytes[0] << 8 | can_msg_bytes[1]
 
         # Translate
         message_name, message_source, decoded_message = self.decoder.decode_can_msg(
-            can_id, msg_bytes[3:]
+            can_id, can_msg_bytes[3:]
         )
         # if can_id == 0x0F6 and decoded_message["GpsDay"] != 0:
         if can_id == 24 and decoded_message["GpsDay"] != 0:
-            self.update_last_gps_time(decoded_message, recieved_millis_time)
+            self.update_last_gps_time(decoded_message, received_millis_time)
         return message_name, message_source, decoded_message, msg_time, msg_crc_status
 
     def update_last_gps_time(self, gps_message, received_millis_time):
