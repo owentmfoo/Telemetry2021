@@ -2,21 +2,18 @@ from datetime import timezone, datetime
 from unittest.mock import MagicMock
 
 import pytest
-from fixtures import patch_receiver_config
+from fixtures import patch_receiver_config, nrt_bytes, mppt_bytes
 
 
 @pytest.fixture(autouse=True)
 def run_in_receiver(request, monkeypatch):
     monkeypatch.chdir(request.config.rootdir + "/Receiver")
 
-def test_store_data_nrt(monkeypatch, tmp_path, run_in_receiver):
+def test_store_data_nrt(monkeypatch, tmp_path, run_in_receiver, nrt_bytes):
     # arrange
     # Create a mock store function
-    monkeypatch.setattr("Receiver.receiver_config.configFile",
-                        "../Tests/data/CANBusConfig.xlsm")
     mock_store_function = MagicMock()
     monkeypatch.setattr('Receiver.telemetryStorer.storeFunctionList', [mock_store_function])
-
 
     from Receiver.telemetry_parser3 import TelemetryParser
     telemetry_parser = TelemetryParser()
@@ -26,11 +23,7 @@ def test_store_data_nrt(monkeypatch, tmp_path, run_in_receiver):
     monkeypatch.setattr("Receiver.telemetryStorer.telemetry_parser",
                         telemetry_parser)
 
-    hex_file = "../Tests/data/NRT.BIN"
-    end_of_frame_marker = b"\x7E"
-    with open(hex_file, mode="rb") as file:
-        input_bytes = file.readlines()
-    msgs = bytearray().join(input_bytes).split(end_of_frame_marker)
+    msgs = nrt_bytes
 
     from Receiver.telemetryStorer import storeData
     # act
@@ -52,13 +45,10 @@ def test_store_data_nrt(monkeypatch, tmp_path, run_in_receiver):
     # assert
     assert mock_store_function.call_count == 5
 
-def test_store_data_mppt(monkeypatch, tmp_path, run_in_receiver):
+def test_store_data_mppt(monkeypatch, tmp_path, run_in_receiver, mppt_bytes):
     # arrange
-    monkeypatch.setattr("Receiver.receiver_config.configFile",
-                        "../Tests/data/CANBusConfig.xlsm")
     mock_store_function = MagicMock()
     monkeypatch.setattr('Receiver.telemetryStorer.storeFunctionList', [mock_store_function])
-
 
     from Receiver.telemetry_parser3 import TelemetryParser
     telemetry_parser = TelemetryParser()
@@ -67,11 +57,8 @@ def test_store_data_mppt(monkeypatch, tmp_path, run_in_receiver):
                                               second=0, tzinfo=timezone.utc)
     monkeypatch.setattr("Receiver.telemetryStorer.telemetry_parser",
                         telemetry_parser)
-    hex_file = "../Tests/data/MPPT.BIN"
-    end_of_frame_marker = b"\x7E"
-    with open(hex_file, mode="rb") as file:
-        input_bytes = file.readlines()
-    msgs = bytearray().join(input_bytes).split(end_of_frame_marker)
+
+    msgs = mppt_bytes
 
     from Receiver.telemetryStorer import storeData
     # act
