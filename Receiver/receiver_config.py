@@ -11,13 +11,16 @@ class influxCredentials(NamedTuple):
     port: int = 8086
     enabled: bool = True
 
+#xlsxOutputFile: str = './ExcelOutput/ExcelTest.xlsx' #set equal to '' to switch off xslx output
+xlsxOutputFile: str = ''
+
 
 ifCredentials = influxCredentials()
 
 # configFile: str = './CANConfig.xslx' #raspberrypi
-configFile: str = "../../CANTranslator/config/CANBusConfig.xlsm"  # testing with windows
+configFile: str = "../../0/config/CANBusConfig.xlsm"  # testing with windows
 
-dbc_folder = PurePath("../dbc/")
+dbc_folder = PurePath("../0/")
 dbc_files = [
     dbc_folder / "wavesculptor_22.dbc",
     dbc_folder / "MPPT.dbc",

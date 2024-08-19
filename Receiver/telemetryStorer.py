@@ -13,13 +13,10 @@ from os.path import exists as fileExists
 
 from influxdb import InfluxDBClient
 from Receiver.telemetry_parser3 import TelemetryParser
-from Receiver.receiver_config import ifCredentials
+from Receiver.receiver_config import ifCredentials, xlsxOutputFile
 
 telemetry_parser = TelemetryParser()
 
-#TELEMETRY STORE CONFIG
-#xlsxOutputFile: str = './ExcelOutput/ExcelTest.xlsx' #set equal to '' to switch off xslx output
-xlsxOutputFile: str = ''
 
 #STORE DATA REGION
 storeFunctionList: list = []
@@ -107,7 +104,7 @@ def endSession():
 
     print("Ending telemetry storer session")
 
-    if type(XlsxOutWorkbook) is Workbook:
+    if isinstance(XlsxOutWorkbook, Workbook):
         print("Closing xlsx output file")
         XlsxOutWorkbook.save(xlsxOutputFile)
         XlsxOutWorkbook.close()
