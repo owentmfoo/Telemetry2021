@@ -1,11 +1,14 @@
-from datetime import datetime, timezone
+import sys
 from pathlib import PurePath
+from typing import NamedTuple
 
 import pytest
+
 
 @pytest.fixture(autouse=True)
 def run_in_receiver(request, monkeypatch):
     monkeypatch.chdir(request.config.rootdir + "/Receiver")
+
 
 @pytest.fixture(autouse=True)
 def patch_receiver_config(request, monkeypatch):
@@ -17,6 +20,23 @@ def patch_receiver_config(request, monkeypatch):
         dbc_folder / "Orion.dbc",
     ]
     monkeypatch.setattr("Receiver.receiver_config.dbc_files", dbc_files)
+    monkeypatch.setattr("Receiver.receiver_config.xlsxOutputFile", "")
+
+    class influxCredentials(NamedTuple):
+        enabled: bool = False
+
+    monkeypatch.setattr("Receiver.receiver_config.ifCredentials", influxCredentials())
+
+    # force reloading of telemetry parser and storer
+    try:
+        del sys.modules["Receiver.telemetry_parser3"]
+    except KeyError:
+        pass
+
+    try:
+        del sys.modules["Receiver.telemetryStorer"]
+    except KeyError:
+        pass
 
 
 @pytest.fixture(scope="session")
