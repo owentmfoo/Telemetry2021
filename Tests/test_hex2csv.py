@@ -1,9 +1,8 @@
 from datetime import timezone, datetime
-import pytest
-from fixtures import patch_receiver_config,run_in_receiver
+from fixtures import run_in_receiver, patch_receiver_config
 
 
-def test_hex2csv(monkeypatch, tmp_path):
+def test_hex2csv(monkeypatch, tmp_path, run_in_receiver):
     # arrange
     from Receiver.hex2csv import hex2csv
     from Receiver.telemetry_parser3 import TelemetryParser
@@ -24,7 +23,7 @@ def test_hex2csv(monkeypatch, tmp_path):
             assert f1lines == f2lines
 
 
-def test_hex2csv2(monkeypatch, tmp_path):
+def test_hex2csv2(monkeypatch, tmp_path, run_in_receiver):
     # arrange
     from Receiver.hex2csv import hex2csv
     from Receiver.telemetry_parser3 import TelemetryParser
