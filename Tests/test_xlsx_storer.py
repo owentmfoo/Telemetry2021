@@ -13,7 +13,6 @@ from fixtures import nrt_bytes, patch_receiver_config, run_in_receiver
 # Mock the Workbook and Worksheet
 @pytest.fixture(scope="function")
 def mock_xlsx_workbook(monkeypatch, request):
-
     class influxCredentials(NamedTuple):
         enabled: bool = False
 
