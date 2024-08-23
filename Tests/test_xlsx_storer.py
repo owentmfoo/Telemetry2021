@@ -3,10 +3,9 @@ from pathlib import PurePath
 from typing import NamedTuple
 
 import pytest
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock, call, patch
 from datetime import datetime, timezone
 
-from openpyxl import Workbook
 from fixtures import nrt_bytes, patch_receiver_config, run_in_receiver
 
 
@@ -33,30 +32,30 @@ def mock_xlsx_workbook(monkeypatch, request):
         del sys.modules["Receiver.telemetryStorer"]
     except KeyError:
         pass
-    import Receiver.telemetryStorer
 
-    mock_workbook = MagicMock(spec=Workbook)
-    mock_worksheet = MagicMock()
-    mock_workbook.active = mock_worksheet
-    monkeypatch.setattr(Receiver.telemetryStorer, "XlsxOutWorkbook", mock_workbook)
-    monkeypatch.setattr(Receiver.telemetryStorer, "XlsxOutWorkSheet", mock_worksheet)
-    monkeypatch.setattr(Receiver.telemetryStorer, "XlsxOutRowPointer", 2)
-    return mock_workbook, mock_worksheet
+    with patch("openpyxl.Workbook", spec=True) as mock_workbook:
+        workbook_instance = mock_workbook.return_value
+        mock_worksheet = MagicMock()
+        workbook_instance.create_sheet.return_value = mock_worksheet
+
+        yield workbook_instance, mock_worksheet
 
 
 def test_data_written_to_xlsx(
-    monkeypatch, run_in_receiver, patch_receiver_config, mock_xlsx_workbook, nrt_bytes
+    monkeypatch, run_in_receiver, nrt_bytes, patch_receiver_config, mock_xlsx_workbook
 ):
     # Arrange
     mock_workbook, mock_worksheet = mock_xlsx_workbook
     from Receiver.telemetry_parser3 import TelemetryParser
     import Receiver.telemetryStorer
 
+    # Arrange
     telemetry_parser = TelemetryParser()
     telemetry_parser.last_gps_time = datetime(
-        year=1970, month=1, day=1, hour=3, minute=0, second=0, tzinfo=timezone.utc
+        year=1970, month=1, day=1, hour=3, minute=0, second=0,
+        tzinfo=timezone.utc
     )
-    monkeypatch.setattr(Receiver.telemetryStorer, "telemetry_parser", telemetry_parser)
+    monkeypatch.setattr("Receiver.telemetryStorer.telemetry_parser", telemetry_parser)
 
     # Act
     from Receiver.telemetryStorer import storeData
@@ -65,6 +64,12 @@ def test_data_written_to_xlsx(
 
     # Assert
     assert mock_worksheet.cell.call_args_list == [
+        call(column=1, row=1, value='Date'),
+        call(column=2, row=1, value='Time'),
+        call(column=3, row=1, value='Source'),
+        call(column=4, row=1, value='Item'),
+        call(column=5, row=1, value='Data...'),
+        call(column=21, row=1, value='CRC check'),
         call(column=1, row=2, value=datetime(1970, 1, 1, 3, 0, 1, 880000)),
         call(column=2, row=2, value=datetime(1970, 1, 1, 3, 0, 1, 880000)),
         call(column=3, row=2, value="Orion"),
@@ -82,7 +87,7 @@ def test_data_written_to_xlsx(
     mock_workbook.save.assert_called_once_with("mock.xlsx")
 
 
-def test_xlsx_closed(monkeypatch, mock_xlsx_workbook, nrt_bytes, run_in_receiver):
+def test_xlsx_closed(monkeypatch, nrt_bytes, run_in_receiver, mock_xlsx_workbook):
     # Arrange
     mock_workbook, mock_worksheet = mock_xlsx_workbook
     from Receiver.telemetryStorer import endSession

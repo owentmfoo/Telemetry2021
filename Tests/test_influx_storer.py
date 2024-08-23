@@ -10,16 +10,17 @@ from fixtures import patch_receiver_config, nrt_bytes, run_in_receiver
 
 @pytest.fixture(scope="function")
 def mock_influxdb_client(monkeypatch):
-    mock_client_instance = MagicMock(spec=InfluxDBClient)
     mock_client_class = MagicMock(
-        spec=InfluxDBClient, return_value=mock_client_instance
+        spec=InfluxDBClient
     )
     monkeypatch.setattr("influxdb.InfluxDBClient", mock_client_class)
+    mock_client_instance = mock_client_class.return_value
+
     return mock_client_class, mock_client_instance
 
 
 def test_data_written_to_influx(
-    monkeypatch, mock_influxdb_client, patch_receiver_config, nrt_bytes, run_in_receiver
+    monkeypatch, nrt_bytes,  run_in_receiver, patch_receiver_config, mock_influxdb_client,
 ):
     # arrange
     class influxCredentials(NamedTuple):
@@ -74,7 +75,7 @@ def test_data_written_to_influx(
     )
 
 
-def test_influx_closed(monkeypatch, mock_influxdb_client, nrt_bytes, run_in_receiver):
+def test_influx_closed(monkeypatch, nrt_bytes, run_in_receiver, patch_receiver_config, mock_influxdb_client):
     # Arrange
     class influxCredentials(NamedTuple):
         username: str = "mock"

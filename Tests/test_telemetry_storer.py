@@ -6,22 +6,22 @@ from fixtures import nrt_bytes, mppt_bytes, run_in_receiver, patch_receiver_conf
 
 def test_store_data_nrt(monkeypatch, tmp_path, run_in_receiver, nrt_bytes):
     # arrange
-    from Receiver.telemetryStorer import storeData
     from Receiver.telemetry_parser3 import TelemetryParser
+    from Receiver.telemetryStorer import TelemetryStorer
 
     telemetry_parser = TelemetryParser()
     telemetry_parser.last_gps_time = datetime(
         year=1970, month=1, day=1, hour=3, minute=0, second=0, tzinfo=timezone.utc
     )
-    monkeypatch.setattr("Receiver.telemetryStorer.telemetry_parser", telemetry_parser)
 
     mock_store_function = MagicMock()
-    monkeypatch.setattr(
-        "Receiver.telemetryStorer.storeFunctionList", [mock_store_function]
-    )
+    mock_store_class = MagicMock()
+    mock_store_class.storeData = mock_store_function
+    telemetry_storer = TelemetryStorer(telemetry_parser, storage_plugin_list=[mock_store_class])
+
+    storeData = telemetry_storer.storeData
 
     msgs = nrt_bytes
-
     # act
     storeData(msgs[20])  # Orion
     mock_store_function.assert_called_with(
@@ -88,19 +88,20 @@ def test_store_data_nrt(monkeypatch, tmp_path, run_in_receiver, nrt_bytes):
 
 def test_store_data_mppt(monkeypatch, tmp_path, run_in_receiver, mppt_bytes):
     # arrange
-    from Receiver.telemetryStorer import storeData
     from Receiver.telemetry_parser3 import TelemetryParser
+    from Receiver.telemetryStorer import TelemetryStorer
 
     telemetry_parser = TelemetryParser()
     telemetry_parser.last_gps_time = datetime(
         year=1970, month=1, day=1, hour=3, minute=0, second=0, tzinfo=timezone.utc
     )
-    monkeypatch.setattr("Receiver.telemetryStorer.telemetry_parser", telemetry_parser)
 
     mock_store_function = MagicMock()
-    monkeypatch.setattr(
-        "Receiver.telemetryStorer.storeFunctionList", [mock_store_function]
-    )
+    mock_store_class = MagicMock()
+    mock_store_class.storeData = mock_store_function
+    telemetry_storer = TelemetryStorer(telemetry_parser, storage_plugin_list=[mock_store_class])
+
+    storeData = telemetry_storer.storeData
 
     msgs = mppt_bytes
 
