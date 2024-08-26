@@ -1,5 +1,5 @@
 import serial
-from telemetryStorer import storeData, endSession
+from telemetry_storer import store_data, end_session
 import atexit
 import signal
 
@@ -31,11 +31,11 @@ while keepLooping:
         #print("reading byte: " + str(inputByte))
 
         if inputByte == EndOfFrameMarker:
-            storeData(frameBuffer)
-            frameBuffer = bytearray() #reset buffer
+            store_data(frameBuffer)
+            frameBuffer = bytearray()  # reset buffer
         else:
             frameBuffer.extend(inputByte)
 
-endSession()
+end_session()
 serialConnection.close()
 print("Exiting live telemetry")

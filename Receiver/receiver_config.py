@@ -3,7 +3,11 @@ from typing import NamedTuple
 
 
 # used by all live_calculation scripts
-class influxCredentials(NamedTuple):
+#xlsxOutputFile: str = './ExcelOutput/ExcelTest.xlsx' #set equal to '' to switch off xslx output
+xlsxOutputFile: str = ''
+
+
+class InfluxCredentials(NamedTuple):
     username: str = "admin"
     password: str = "password"
     db: str = "Test22DB"
@@ -11,11 +15,8 @@ class influxCredentials(NamedTuple):
     port: int = 8086
     enabled: bool = True
 
-#xlsxOutputFile: str = './ExcelOutput/ExcelTest.xlsx' #set equal to '' to switch off xslx output
-xlsxOutputFile: str = ''
 
-
-ifCredentials = influxCredentials()
+ifCredentials = InfluxCredentials()
 
 # configFile: str = './CANConfig.xslx' #raspberrypi
 configFile: str = "../../0/config/CANBusConfig.xlsm"  # testing with windows

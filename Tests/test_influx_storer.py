@@ -35,17 +35,17 @@ def test_data_written_to_influx(
 
     monkeypatch.setattr("Receiver.receiver_config.xlsxOutputFile", "")
 
-    from Receiver.telemetryStorer import storeData
+    from Receiver.telemetry_storer import store_data
     from Receiver.telemetry_parser3 import TelemetryParser
 
     telemetry_parser = TelemetryParser()
     telemetry_parser.last_gps_time = datetime(
         year=1970, month=1, day=1, hour=3, minute=0, second=0, tzinfo=timezone.utc
     )
-    monkeypatch.setattr("Receiver.telemetryStorer.telemetry_parser", telemetry_parser)
+    monkeypatch.setattr("Receiver.telemetry_storer.telemetry_parser", telemetry_parser)
 
     # Act
-    storeData(nrt_bytes[20])
+    store_data(nrt_bytes[20])
 
     # Assert
     mock_client_class, mock_client_instance = mock_influxdb_client
@@ -89,11 +89,11 @@ def test_influx_closed(monkeypatch, nrt_bytes, run_in_receiver, patch_receiver_c
 
     monkeypatch.setattr("Receiver.receiver_config.xlsxOutputFile", "")
 
-    from Receiver.telemetryStorer import endSession
+    from Receiver.telemetry_storer import end_session
 
     # Act
 
-    endSession()
+    end_session()
 
     # Assert
     mock_client_class, mock_client_instance = mock_influxdb_client

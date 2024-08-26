@@ -34,7 +34,12 @@ def patch_receiver_config(request, monkeypatch):
         pass
 
     try:
-        del sys.modules["Receiver.telemetryStorer"]
+        del sys.modules["Receiver.telemetry_storer"]
+    except KeyError:
+        pass
+
+    try:
+        del sys.modules["Receiver.storer_extension"]
     except KeyError:
         pass
 

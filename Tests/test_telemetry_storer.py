@@ -7,7 +7,7 @@ from fixtures import nrt_bytes, mppt_bytes, run_in_receiver, patch_receiver_conf
 def test_store_data_nrt(monkeypatch, tmp_path, run_in_receiver, nrt_bytes):
     # arrange
     from Receiver.telemetry_parser3 import TelemetryParser
-    from Receiver.telemetryStorer import TelemetryStorer
+    from Receiver.telemetry_storer import TelemetryStorer
 
     telemetry_parser = TelemetryParser()
     telemetry_parser.last_gps_time = datetime(
@@ -16,10 +16,10 @@ def test_store_data_nrt(monkeypatch, tmp_path, run_in_receiver, nrt_bytes):
 
     mock_store_function = MagicMock()
     mock_store_class = MagicMock()
-    mock_store_class.storeData = mock_store_function
+    mock_store_class.store_data = mock_store_function
     telemetry_storer = TelemetryStorer(telemetry_parser, storage_plugin_list=[mock_store_class])
 
-    storeData = telemetry_storer.storeData
+    storeData = telemetry_storer.store_data
 
     msgs = nrt_bytes
     # act
@@ -89,7 +89,7 @@ def test_store_data_nrt(monkeypatch, tmp_path, run_in_receiver, nrt_bytes):
 def test_store_data_mppt(monkeypatch, tmp_path, run_in_receiver, mppt_bytes):
     # arrange
     from Receiver.telemetry_parser3 import TelemetryParser
-    from Receiver.telemetryStorer import TelemetryStorer
+    from Receiver.telemetry_storer import TelemetryStorer
 
     telemetry_parser = TelemetryParser()
     telemetry_parser.last_gps_time = datetime(
@@ -98,10 +98,10 @@ def test_store_data_mppt(monkeypatch, tmp_path, run_in_receiver, mppt_bytes):
 
     mock_store_function = MagicMock()
     mock_store_class = MagicMock()
-    mock_store_class.storeData = mock_store_function
+    mock_store_class.store_data = mock_store_function
     telemetry_storer = TelemetryStorer(telemetry_parser, storage_plugin_list=[mock_store_class])
 
-    storeData = telemetry_storer.storeData
+    storeData = telemetry_storer.store_data
 
     msgs = mppt_bytes
 

@@ -29,7 +29,7 @@ def mock_xlsx_workbook(monkeypatch, request):
     monkeypatch.setattr("Receiver.receiver_config.dbc_files", dbc_files)
 
     try:
-        del sys.modules["Receiver.telemetryStorer"]
+        del sys.modules["Receiver.telemetry_storer"]
     except KeyError:
         pass
 
@@ -47,7 +47,7 @@ def test_data_written_to_xlsx(
     # Arrange
     mock_workbook, mock_worksheet = mock_xlsx_workbook
     from Receiver.telemetry_parser3 import TelemetryParser
-    import Receiver.telemetryStorer
+    import Receiver.telemetry_storer
 
     # Arrange
     telemetry_parser = TelemetryParser()
@@ -55,12 +55,12 @@ def test_data_written_to_xlsx(
         year=1970, month=1, day=1, hour=3, minute=0, second=0,
         tzinfo=timezone.utc
     )
-    monkeypatch.setattr("Receiver.telemetryStorer.telemetry_parser", telemetry_parser)
+    monkeypatch.setattr("Receiver.telemetry_storer.telemetry_parser", telemetry_parser)
 
     # Act
-    from Receiver.telemetryStorer import storeData
+    from Receiver.telemetry_storer import store_data
 
-    storeData(nrt_bytes[20])
+    store_data(nrt_bytes[20])
 
     # Assert
     assert mock_worksheet.cell.call_args_list == [
@@ -90,10 +90,10 @@ def test_data_written_to_xlsx(
 def test_xlsx_closed(monkeypatch, nrt_bytes, run_in_receiver, mock_xlsx_workbook):
     # Arrange
     mock_workbook, mock_worksheet = mock_xlsx_workbook
-    from Receiver.telemetryStorer import endSession
+    from Receiver.telemetry_storer import end_session
 
     # Act
-    endSession()
+    end_session()
 
     # Assert
     mock_workbook.save.assert_called_once_with("mock.xlsx")
