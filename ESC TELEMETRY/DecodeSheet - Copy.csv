@@ -1,0 +1,53 @@
+Item,Source,Period (s),CAN_ID,CAN_ID (dec),DLC,BYTE_0,BYTE_1,BYTE_2,BYTE_3,BYTE_4,BYTE_5,BYTE_6,BYTE_7,freq,rate (byte/s),1,2,3,4,5,6,7,8
+Time and fix,Telemetry,2,0x0F6,246,8,GPS_hour,GPS_minute,GPS_seconds,GPS_day,GPS_month,GPS_year,GPS_fix,GPS_fixquality,0.5,4,uint8,uint8,uint8,uint8,uint8,uint8,uint8,uint8
+Speed and Angle,Telemetry,2,0x0F7,247,8,GPS_speed,IN USE,IN USE,IN USE,GPS_angle,IN USE,IN USE,IN USE,0.5,4,float,float,-,-,-,-,-,-
+Latitude,Telemetry,2,0x0F8,248,5,GPS_latitude,IN USE,IN USE,IN USE,GPS_lat,-,-,-,0.5,2.5,float,char,-,-,-,-,-,-
+Longitude,Telemetry,2,0x0F9,249,5,GPS_longitude,IN USE,IN USE,IN USE,GPS_lon,-,-,-,0.5,2.5,float,char,-,-,-,-,-,-
+Altitude and Satellites,Telemetry,2,0x0FA,250,5,GPS_altitude,IN USE,IN USE,IN USE,GPS_satellites,-,-,-,0.5,2.5,float,uint8,-,-,-,-,-,-
+System status messages,Telemetry,2,0x111,273,8,Power,Writing to SD,GPS Time Obtained,Loaded Config,Flag,spare1,spare2,spare3,0.5,4,uint8,uint8,uint8,uint8,uint8,spare1,spare2,spare3
+Testbed enviroCAN.ino1,Testbed,,0x1B1,433,8,Temp deg C,IN USE,IN USE,IN USE,Humidity,IN USE,IN USE,IN USE,,,float,float,-,-,-,-,-,-
+Testbed enviroCAN.ino2,Testbed,,0x1B2,434,8,Heat index deg C,IN USE,IN USE,IN USE,LDR reading,IN USE,IN USE,IN USE,,,float,int32,-,-,-,-,-,-
+packparameters,Orion,0.104,0x700,1792,8,Pack Current,IN USE,Pack Inst. Voltage,IN USE,Pack SOC,Relay State,IN USE,blank,9.62,67.31,uint16,uint16,uint8,uint16,uint8,-,-,-
+"cell temps, discharge & chage current limit",Orion,0.104,0x701,1793,8,Pack DCL,IN USE,Unknown,IN USE,High Temperature Sensor,Low Temperature Sensors,Blank,blank,9.62,67.31,int16,int16,int8,int8,int8,uint8,-,-
+cellvoltages,Orion,0.104,0x702,1794,8,LowCellVoltage,IN USE,HighCellVoltage,IN USE,InternalTemperature,Blank,Blank,blank,9.62,67.31,uint16,uint16,uint8,uint8,uint8,uint8,-,-
+MPPT poll javed,Telemetry,0.5,0x711,1809,0,Blank,-,-,-,-,-,-,-,2,2,int8,-,-,-,-,-,-,-
+MPPT poll woof,Telemetry,0.5,0x712,1810,0,Blank,-,-,-,-,-,-,-,2,2,int8,-,-,-,-,-,-,-
+Javed,MPPT,0.5,0x771,1905,7,Flags and MSB Voltage In,LSB Voltage In,MSB Current In,LSB Current In,MSB Voltage Out,LSB Voltage Out,Ambient Temperature,-,2,14,uint8,uint8,uint8,uint8,uint8,uint8,uint8,-
+Woof,MPPT,0.5,0x772,1906,7,Flags and MSB Voltage In,LSB Voltage In,MSB Current In,LSB Current In,MSB Voltage Out,LSB Voltage Out,Ambient Temperature,-,2,14,uint8,uint8,uint8,uint8,uint8,uint8,uint8,-
+Identification Info,Tritium20,1,0x400,1024,8,Tritium ID 20,IN USE,IN USE,IN USE,Serial Number 20,IN USE,IN USE,IN USE,1,8,uint32,uint32,-,-,-,-,-,-
+Staus Information,Tritium20,0.2,0x401,1025,8,Limit Flags 20,IN USE,Error Flags 20,IN USE,Active Motor 20,IN USE,Transmit error count 20,Receive error count 20,5,40,uint16,uint16,uint16,uint8,uint8,-,-,-
+Bus Measurement,Tritium20,0.2,0x402,1026,8,Bus Voltage 20,IN USE,IN USE,IN USE,Bus Current 20,IN USE,IN USE,IN USE,5,40,float,float,-,-,-,-,-,-
+Velocity (rpm+m/s),Tritium20,0.2,0x403,1027,8,Motor Velocity 20,IN USE,IN USE,IN USE,Vehicle Velocity 20,IN USE,IN USE,IN USE,5,40,float,float,-,-,-,-,-,-
+Phase Current,Tritium20,0.2,0x404,1028,8,Phase B Current 20,IN USE,IN USE,IN USE,Phase C Current 20,IN USE,IN USE,IN USE,5,40,float,float,-,-,-,-,-,-
+Motor Voltage Vector,Tritium20,0.2,0x405,1029,8,Vect Volt Imag 20,IN USE,IN USE,IN USE,Vect Volt Real 20,IN USE,IN USE,IN USE,5,40,float,float,-,-,-,-,-,-
+Motor Current Vector,Tritium20,0.2,0x406,1030,8,Vect Curr Imag 20,IN USE,IN USE,IN USE,Vect Curr Real 20,IN USE,IN USE,IN USE,5,40,float,float,-,-,-,-,-,-
+Motor BackEMF Vector,Tritium20,0.2,0x407,1031,8,Peak Back EMF phase to neutral 20,IN USE,IN USE,IN USE,Back EMF d 20,IN USE,IN USE,IN USE,5,40,float,float,-,-,-,-,-,-
+15 Volt. Rail,Tritium20,1,0x408,1032,8,Reserved,IN USE,IN USE,IN USE,Fifteen V Supply 20,IN USE,IN USE,IN USE,1,8,float,float,-,-,-,-,-,-
+3.3 & 1.9 Volt. Rail,Tritium20,1,0x409,1033,8,One Nine V Supply 20,IN USE,IN USE,IN USE,Three Three V Supply 20,IN USE,IN USE,IN USE,1,8,float,float,-,-,-,-,-,-
+Reserved,Tritium20,1,0x40A,1034,8,Reserved,IN USE,IN USE,IN USE,Reserved,IN USE,IN USE,IN USE,1,8,float,float,-,-,-,-,-,-
+Sink & Motor Temperature,Tritium20,1,0x40B,1035,8,Motor Temp 20,IN USE,IN USE,IN USE,Heat Sink Temp 20,IN USE,IN USE,IN USE,1,8,float,float,-,-,-,-,-,-
+DSP Board Temperature,Tritium20,1,0x40C,1036,8,DSP Board Temp 20,IN USE,IN USE,IN USE,Reserved,IN USE,IN USE,IN USE,1,8,float,float,-,-,-,-,-,-
+Reserved,Tritium20,1,0x40D,1037,8,Reserved,IN USE,IN USE,IN USE,Reserved,IN USE,IN USE,IN USE,1,8,float,float,-,-,-,-,-,-
+Odo. & Bus AmpHours,Tritium20,1,0x40E,1038,8,Odometer 20,IN USE,IN USE,IN USE,DC Bus Amp Hours 20,IN USE,IN USE,IN USE,1,8,float,float,-,-,-,-,-,-
+Slip Speed Measurement,Tritium20,0.2,0x417,1039,8,Reserved,IN USE,IN USE,IN USE,Slip Speed 20,IN USE,IN USE,IN USE,5,40,float,float,-,-,-,-,-,-
+Identification Info,Tritium22,1,0x300,768,8,Tritium ID 22,IN USE,IN USE,IN USE,Serial Number 22,IN USE,IN USE,IN USE,1,8,uint32,uint32,-,-,-,-,-,-
+Staus Information,Tritium22,0.2,0x301,769,8,Limit Flags 22,IN USE,Error Flags 22,IN USE,Active Motor 22,IN USE,Transmit error count 22,Receive error count 22,5,40,uint16,uint16,uint16,uint8,uint8,-,-,-
+Bus Measurement,Tritium22,0.2,0x302,770,8,Bus Voltage 22,IN USE,IN USE,IN USE,Bus Current 22,IN USE,IN USE,IN USE,5,40,float,float,-,-,-,-,-,-
+Velocity (rpm+m/s),Tritium22,0.2,0x303,771,8,Motor Velocity 22,IN USE,IN USE,IN USE,Vehicle Velocity 22,IN USE,IN USE,IN USE,5,40,float,float,-,-,-,-,-,-
+Phase Current,Tritium22,0.2,0x304,772,8,Phase B Current 22,IN USE,IN USE,IN USE,Phase C Current 22,IN USE,IN USE,IN USE,5,40,float,float,-,-,-,-,-,-
+Motor Voltage Vector,Tritium22,0.2,0x305,773,8,Vect Volt Imag 22,IN USE,IN USE,IN USE,Vect Volt Real 22,IN USE,IN USE,IN USE,5,40,float,float,-,-,-,-,-,-
+Motor Current Vector,Tritium22,0.2,0x306,774,8,Vect Curr Imag 22,IN USE,IN USE,IN USE,Vect Curr Real 22,IN USE,IN USE,IN USE,5,40,float,float,-,-,-,-,-,-
+Motor BackEMF Vector,Tritium22,0.2,0x307,775,8,Peak Back EMF phase to neutral 22,IN USE,IN USE,IN USE,Back EMF d 22,IN USE,IN USE,IN USE,5,40,float,float,-,-,-,-,-,-
+15 Volt. Rail,Tritium22,1,0x308,776,8,Reserved ,IN USE,IN USE,IN USE,Fifteen V Supply 22,IN USE,IN USE,IN USE,1,8,float,float,-,-,-,-,-,-
+3.3 & 1.9 Volt. Rail,Tritium22,1,0x309,777,8,One Nine V Supply 22,IN USE,IN USE,IN USE,Three Three V Supply 22,IN USE,IN USE,IN USE,1,8,float,float,-,-,-,-,-,-
+Reserved,Tritium22,1,0x30A,778,8,Reserved,IN USE,IN USE,IN USE,Reserved,IN USE,IN USE,IN USE,1,8,float,float,-,-,-,-,-,-
+Sink & Motor Temperature,Tritium22,1,0x30B,779,8,Motor Temp 22,IN USE,IN USE,IN USE,Heat Sink Temp 22,IN USE,IN USE,IN USE,1,8,float,float,-,-,-,-,-,-
+DSP Board Temperature,Tritium22,1,0x30C,780,8,DSP Board Temp 22,IN USE,IN USE,IN USE,Reserved,IN USE,IN USE,IN USE,1,8,float,float,-,-,-,-,-,-
+Reserved,Tritium22,1,0x30D,781,8,Reserved,IN USE,IN USE,IN USE,Reserved,IN USE,IN USE,IN USE,1,8,float,float,-,-,-,-,-,-
+Odo. & Bus AmpHours,Tritium22,1,0x30E,782,8,Odometer 22,IN USE,IN USE,IN USE,DC Bus Amp Hours 22,IN USE,IN USE,IN USE,1,8,float,float,-,-,-,-,-,-
+Slip Speed Measurement,Tritium22,0.2,0x317,791,8,Reserved,IN USE,IN USE,IN USE,Slip Speed 22,IN USE,IN USE,IN USE,5,40,float,float,-,-,-,-,-,-
+"speed_val, curr_val",driver_controls20,0.1,0x201,258,8,Driver Set Speed 20,IN USE,IN USE,IN USE,Driver Set Current 20,IN USE,IN USE,IN USE,10,80,float,float,-,-,-,-,-,-
+maxBusCurrent,driver_controls20,0.5,0x202,514,8,Zero,-,-,-,Max Bus Current 20,IN USE,IN USE,IN USE,2,16,float,float,-,-,-,-,-,-
+"speed_val, curr_val",driver_controls22,0.1,0x101,257,8,Driver Set Speed 22,IN USE,IN USE,IN USE,Driver Set Current 22,IN USE,IN USE,IN USE,10,80,float,float,-,-,-,-,-,-
+maxBusCurrent,driver_controls22,0.5,0x102,513,8,Zero,-,-,-,Max Bus Current 22,IN USE,IN USE,IN USE,2,16,float,float,-,-,-,-,-,-
+DriverSetCurrent,driver_controls,0.2,0x500,1280,8,Driver Set Dial Current,IN USE,IN USE,IN USE,Total AC Motor Current,IN USE,IN USE,IN USE,5,40,float,float,-,-,-,-,-,-
