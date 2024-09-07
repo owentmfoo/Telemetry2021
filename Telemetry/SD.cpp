@@ -64,7 +64,7 @@ void load_config() {
     config.time_fix = doc["time_fix"];      DEBUG_PRINT("TIME FIX:\t");     DEBUG_PRINTLN(config.time_fix);
     config.sd_update = doc["sd_update"];    DEBUG_PRINT("SD UPDATE:\t");    DEBUG_PRINTLN(config.sd_update);
     config.status_update = doc["status_update"];    DEBUG_PRINT("STATUS UPDATE:\t");    DEBUG_PRINTLN(config.status_update);
-    config.gps_update = doc["mppt_update"]; DEBUG_PRINT("MPPT UPDATE:\t");  DEBUG_PRINTLN(config.mppt_update);
+    config.mppt_update = doc["mppt_update"]; DEBUG_PRINT("MPPT UPDATE:\t");  DEBUG_PRINTLN(config.mppt_update);
     config.serialCanMsg = doc["serialCanMsg"];      DEBUG_PRINT("SERIAL CAN:\t");       DEBUG_PRINTLN(config.serialCanMsg);
     config.value0 = doc["spare"][0];   DEBUG_PRINT("VAL0:\t");   DEBUG_PRINTLN(config.value0);
     config.value1 = doc["spare"][1];   DEBUG_PRINT("VAL1:\t");   DEBUG_PRINTLN(config.value1);
