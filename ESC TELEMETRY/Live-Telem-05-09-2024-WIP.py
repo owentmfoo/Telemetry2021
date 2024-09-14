@@ -114,7 +114,7 @@ def Get_Iteration(FoundCANID):
         elif CANID == Number_Of_CANIDs-1:
             print(("Failed Message CANID Unknown, CANID: %d") % (FoundCANID))
             # Can be whatever number just > than the list of can number lmaooo
-            Index = 42
+            Index = 99
 
     return Index
 
@@ -187,8 +187,9 @@ while True:
                 Index = Get_Iteration(CANID_AND_DLC[0])
                 
                 # THIS STOPS THE REST DYING LMAO
-                if Index == 42:
+                if Index == 99:
                     BYTECANMessage = bytearray()
+                    print((" -> CAN ID: %s Not Found In Decode Sheet") %(str(CANID_AND_DLC[0]))) 
                     continue
 
                 # SANITY CHECK
