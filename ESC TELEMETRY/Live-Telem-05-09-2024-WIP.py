@@ -91,13 +91,15 @@ Host = "localhost"
 client = InfluxDBClient(Host, Port, user, password, DataBaseName)
 
 print(" -> SET UP INFLUXDB ")
+print(" -> GRAFANA READY ")
 
 ##########################
 
 def signal_handler(sig, frame):
-    print("\n -> *****")
-    print(" -> Ended Live Telemetry - Files Have been saved")
-    print(" -> *****")
+    print("\n Live Telemetry Ended ")
+    print(" |")
+    print(" -> Files Saved")
+    print(" -> Closed Influxdb")
     file1.close()
     file.close()
     exit(0)
