@@ -2,11 +2,11 @@
 #include "SensorInputs.hpp"
 #include "SerialDebugMacros.hpp"
 #include <Adafruit_GPS.h>
-#include "src/CANApi/CanApiv04.hpp"
+#include "src/CANApi/CANHelper.hpp"
 #include "StatusMsg.hpp"
 #include "SD.hpp"
 #include "SendMessage.hpp"
-using namespace CANHelper::Messages::Telemetry;
+//using namespace CANHelper::Messages::Telemetry;
 
 #define GPSSerial Serial1 //hardware serial that GPS is connected to
 #define GPSECHO //enables GPS debug messages to serial
@@ -16,48 +16,53 @@ bool car_on; // = !safestate
 bool flag_status;
 Adafruit_GPS GPS(&GPSSerial); //GPS handle
 
-_TimeAndFix time; //store time in memory
+#define TIME_CAN_BUF time.payloadBuffer.as_Telemetry_TimeAndFix
+CANHelper::CANHelperBuffer time;
+//_TimeAndFix time; //store time in memory
 extern conf config;
-extern CANHelper::CanMsgHandler CANHandler;
+extern CANHelper::CANHandler canHandler;
 long millisWhenGpsTimeUpdate;
 
 void updateTimeCANMsg() {
-  time.data.GpsHour = GPS.hour;
-  time.data.GpsMinute = GPS.minute;
-  time.data.GpsSeconds = GPS.seconds;
-  time.data.GpsDay = GPS.day;
-  time.data.GpsMonth = GPS.month;
-  time.data.GpsYear = GPS.year;
-  time.data.GpsFix = GPS.fix;
-  time.data.GpsFixquality = GPS.fixquality;
+  TIME_CAN_BUF.GpsHour = GPS.hour;
+  TIME_CAN_BUF.GpsMinute = GPS.minute;
+  TIME_CAN_BUF.GpsSeconds = GPS.seconds;
+  TIME_CAN_BUF.GpsDay = GPS.day;
+  TIME_CAN_BUF.GpsMonth = GPS.month;
+  TIME_CAN_BUF.GpsYear = GPS.year;
+  TIME_CAN_BUF.GpsFix = GPS.fix;
+  TIME_CAN_BUF.GpsFixquality = GPS.fixquality;
   millisWhenGpsTimeUpdate = millis();
 }
 
 GPSData gpsData; //would be nice if this worked by using 1 can_frame variable rather than a struct of 4
+#define SPEEDANGLE_CAN_BUF gpsData.speedAngle.payloadBuffer.as_Telemetry_SpeedAndAngle
+#define LAT_CAN_BUF gpsData.latitude.payloadBuffer.as_Telemetry_Latitude
+#define LON_CAN_BUF gpsData.longitude.payloadBuffer.as_Telemetry_Longitude
+#define ALT_CAN_BUF gpsData.altitudeSatellites.payloadBuffer.as_Telemetry_AltitudeAndSatellites
 void gps2canMsgs() {
   // Time + fix
   updateTimeCANMsg();
   sendMessage(time);
-  //sendMessage(time);
 
   // Speed + angle
-  gpsData.speedAngle.data.GpsSpeed = GPS.speed;
-  gpsData.speedAngle.data.GpsAngle = GPS.angle;
+  SPEEDANGLE_CAN_BUF.GpsSpeed = GPS.speed;
+  SPEEDANGLE_CAN_BUF.GpsAngle = GPS.angle;
   sendMessage(gpsData.speedAngle);
 
   // Latitude
-  gpsData.latitude.data.GpsLatitude = GPS.latitude;
-  gpsData.latitude.data.GpsLat = GPS.lat;
+  LAT_CAN_BUF.GpsLatitude = GPS.latitude;
+  LAT_CAN_BUF.GpsLat = GPS.lat;
   sendMessage(gpsData.latitude);
 
   // Longitude
-  gpsData.longitude.data.GpsLongitude = GPS.longitude;
-  gpsData.longitude.data.GpsLon = GPS.lon;
+  LON_CAN_BUF.GpsLongitude = GPS.longitude;
+  LON_CAN_BUF.GpsLon = GPS.lon;
   sendMessage(gpsData.longitude);
 
   // Altitude + satellites
-  gpsData.altitudeSatellites.data.GpsAltitude = GPS.altitude;
-  gpsData.altitudeSatellites.data.GpsSatellites = GPS.satellites;
+  ALT_CAN_BUF.GpsAltitude = GPS.altitude;
+  ALT_CAN_BUF.GpsSatellites = GPS.satellites;
   sendMessage(gpsData.altitudeSatellites);
 
   //testing time since time fix function
@@ -102,6 +107,10 @@ void setupSensorInputs() {
   //gpsData.latitude.data.GpsLat = 'U'; //U = Unknown. Will become either E or W when GPS gets location
   //gpsData.longitude.data.GpsLon = 'U'; //Will become either N or S when GPS gets location
   //DEBUG_PRINTLN("Set GpsLat and GpsLon to U to stop excel complaining");
+
+  //setup CAN Buffers
+  canHandler.setCanMeta(time, CAN_META_Telemetry_TimeAndFix);
+  //GPS data buffers are set through the GPSData constructor (defined at bottom)
 
   /* Check current date and time from GPS */ // - this could do with a whole load of squishing
   DEBUG_PRINTLN("Checking GPS...");
