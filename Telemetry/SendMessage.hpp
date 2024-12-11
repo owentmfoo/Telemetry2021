@@ -14,6 +14,5 @@ public:
 
 void setupSending();
 void sendMessage(CANHelper::CANHelperBuffer& msg);
-//void sendMessage(can_frame& msg);
 
 #endif

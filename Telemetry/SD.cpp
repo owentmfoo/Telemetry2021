@@ -38,7 +38,6 @@ void load_config() {
     File configFile = SD.open(CONFIG_FILENAME);
     DEBUG_PRINT("Opening: ");
     DEBUG_PRINTLN(CONFIG_FILENAME);
-    //char configFile[] = "{\"speedtype\":\"kmh\",\"mode\":1,\"somevalues\":[1.1,1.23456]}";
 
     // Size of the stuff
     DynamicJsonDocument doc(192); // Tool to calculate this value: https://arduinojson.org/v6/assistant/
@@ -47,8 +46,7 @@ void load_config() {
     DeserializationError error = deserializeJson(doc, configFile);
 
     if (error) {
-        setLoadedConfigStatus(STAT_DEFAULTS);  // Cry if we have an error
-        //sendMessage(sysStatus);
+        setLoadedConfigStatus(STAT_DEFAULTS); // Cry if we have an error
         DEBUG_PRINT(F("deserializeJson() failed: "));
         DEBUG_PRINTLN(error.f_str());
         // But also do what we can and use some defaults
@@ -56,8 +54,7 @@ void load_config() {
         return;
     }
 
-    setLoadedConfigStatus(STAT_GOOD);  // No error
-    //sendMessage(sysStatus);
+    setLoadedConfigStatus(STAT_GOOD); // No error
 
     // Put the read values into our config structure
     config.gps_update = doc["gps_update"];  DEBUG_PRINT("GPS UPDATE:\t");   DEBUG_PRINTLN(config.gps_update);
@@ -77,7 +74,6 @@ void load_config() {
 }
 
 void startSDLog() {
-    // filename is "dataYYMMDD00.csv"
     // https://learn.adafruit.com/adafruit-data-logger-shield/using-the-real-time-clock-3
     DEBUG_PRINTLN("Starting SD log");
 
@@ -111,17 +107,7 @@ void startSDLog() {
             if (dataFile) {
                 DEBUG_PRINT("Opening file: ");
                 DEBUG_PRINTLN(filename);
-                // Log our current configuration in some form
-                //dataFile.println("Logging to file");
-                //dataFile.println("ESC ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1");
-                
-                //dataFile.println("ID0 ID1 DLC B0 B1 B2 B3 B4 B5 B6 B7 CRC0 CRC1 ESC"); //moving marker to the end to simplify receiver code
-                //dataFile.println("");
-                
-                //dataFile.flush();
-                //updateStatus(3, 100+i);   // Config file opened with i=i
                 setLoadedConfigStatus(100 + i);
-                //sendMessage(sysStatus);
             }
             // if the file isn't open, pop up an error:
             else {
@@ -129,8 +115,6 @@ void startSDLog() {
                 DEBUG_PRINTLN(filename);
                 /// Some sort of backup filename here?
                 // will only log in loop if dataFile==True
-                //updateStatus(3, 90);   // Config file not opened
-                //sendMessage(sysStatus);
                 setLoadedConfigStatus(90);
             }
             return;
@@ -149,7 +133,4 @@ void setupSD() {
     setWritingSDStatus(STAT_BAD);
     set_defaults(); //use default config
   }
-
-  //start SD log even when card not present. When it is inserted, log should automatically start writing (without reboot)
-  //startSDLog(); //moved to main file due to how it depends on when GPS starts
 }

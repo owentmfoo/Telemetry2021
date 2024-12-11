@@ -18,11 +18,6 @@ extern conf config;
 extern File dataFile;
 extern CANHelper::CANHelperBuffer time;
 
-//#define canTestMsg //This was running the whole time and sending false status messages lol
-#ifdef canTestMsg
-CANHelper::Messages::Telemetry::_SystemStatusMessages canTest; //synthetic CAN test
-#endif
-
 void setup() { //dont forget to change bitrate to 50KBPS
   Serial.begin(230400);
   DEBUG_PRINTLN("Setting up");
@@ -60,11 +55,6 @@ void setup() { //dont forget to change bitrate to 50KBPS
   setPowerStatus(STAT_GOOD);  // Position 0 is power. Send status that setup is happening.
   updateStatus();
 
-  //CAN test test data
-#ifdef canTestMsg
-  canTest.data.Power = 24;
-#endif
-
   DEBUG_PRINTLN("Setup complete");
 }
 
@@ -73,12 +63,9 @@ uint32_t status_timer = millis();
 uint32_t gps_timer = millis();
 uint32_t mppt_timer = millis();
 void loop() {
-  //Serial.println("LOOP START");
-
   powerStatus();  // Check power status
   flagStatus();   // Check flag
   canHandler.read();      // Read incoming CAN message and treat accordingly
-  //pollSensor();   // Poll additional sensors
 
   /* Flush SD file at interval defined in config file */
   if ((millis() - sd_timer) > config.sd_update) {
@@ -115,46 +102,23 @@ void loop() {
 
     mppt_timer = millis();
   }
-
-#ifdef canTestMsg
-  CANHandler.send(canTest);
-#endif
-
-  //Serial.println("Reading...");
-  //CANHandler.read();
-
-  //DEBUG_PRINTLN(""); //println break between frames. Easier to read serial
-  //delay(1000); //This breaks GPS. Something to do with Serial overwriting probably
 }
 
-void updateStatusLEDs(uint8_t statusCode)
-{
+void updateStatusLEDs(uint8_t statusCode) {
   digitalWrite(35, (statusCode & 4) ? HIGH : LOW);
   digitalWrite(37, (statusCode & 2) ? HIGH : LOW);
   digitalWrite(39, (statusCode & 1) ? HIGH : LOW);
-  //delay(1000);
 }
 
 //Just relays all CAN messages over radio
-void CANHelper::CanMsgHandler::processAll(CANHelper::CANHelperBuffer& msg)
-{
+void CANHelper::CanMsgHandler::processAll(CANHelper::CANHelperBuffer& msg) {
   sendMessage(msg);
-
-  //if 0xXX1, its a status message. See updateStatus below
-  /*if(msg.metadata.is & 1) {
-
-  }*/
 }
 
-/*void updateStatus(int pos, uint8_t val) { //wandering if worth adding to library. Then all IDs in format 0xXX1 could be status IDs. Can then log them in status logs
-    // Have as a function so we can add functionality like LEDs.
-    sysStatus.data[pos] = val;
-}*/
-
+//test function
 void CANHelper::CanMsgHandler::processMessage(CANHelper::Messages::DriverControls::SpeedValCurrVal& msg) {
   Serial.print("Set Current: ");
   Serial.print(msg.DriverSetCurrent);
   Serial.print("| Set Speed: ");
   Serial.println(msg.DriverSetSpeed);
-  //CANHandler.send(msg); //just reflecting data to confirm message was received
 }

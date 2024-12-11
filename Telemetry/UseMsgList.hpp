@@ -6,7 +6,7 @@
 #define USE_MSG_Telemetry_Longitude 0b01
 #define USE_MSG_Telemetry_AltitudeAndSatellites 0b01
 
-#define USE_MSG_DriverControls_SpeedValCurrVal 0b11 //for testing
+#define USE_MSG_DriverControls_SpeedValCurrVal 0b10 //for running a small test function for validating CanAPI
 
 #define USE_MSG_Telemetry_MpptPollJaved 0b01
 #define USE_MSG_Telemetry_MpptPollWoof 0b01
